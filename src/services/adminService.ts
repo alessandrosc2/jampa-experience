@@ -970,43 +970,46 @@ class AdminService {
       await supabase.from('places').upsert({
         id: place.id,
         name: place.name,
+        slug: place.id,
         slogan: place.slogan || '',
         category_id: place.categoryId,
+        category_label: place.categoryLabel || 'Praias',
         neighborhood: place.neighborhood,
         neighborhood_id: place.neighborhoodId || null,
-        modality_name: place.modalityName || null,
+        modality_name: place.modalityName || 'Praias',
         topic_ids: place.topicIds || [],
-        rating: place.rating || 5.0,
-        review_count: place.reviewCount || 1,
-        public_teaser: place.publicTeaser || '',
+        rating: place.rating || 4.8,
+        review_count: place.reviewCount || 0,
+        short_description: place.publicTeaser || '',
         full_description: place.fullDescription || '',
+        featured_image: place.featuredImage || (place.gallery && place.gallery[0]) || '',
+        gallery: place.gallery || [],
         price_level: place.priceLevel || 'moderado',
         address: place.address || '',
-        latitude: lat,
-        longitude: lng,
+        lat: lat,
+        lng: lng,
         phone: place.phone || '',
-        whatsapp: place.whatsapp || '',
+        whatsapp: place.whatsapp || (place.phone ? place.phone.replace(/\D/g, '') : ''),
         instagram: place.instagram || '',
         website: place.website || '',
-        google_maps_url: place.googleMapsUrl || '',
         is_partner: Boolean(place.isPartner),
         partner_level: place.partnerLevel || 'standard',
-        partner_benefit: place.partnerBenefit || '',
-        partner_description: place.partnerDescription || '',
-        partner_coupon_code: place.partnerCouponCode || '',
-        partner_active: place.partnerActive ?? true,
+        amenities: place.amenities || {},
         updated_at: new Date().toISOString()
-      });
+      }, { onConflict: 'id' });
 
-      // Sincroniza fotos
-      if (place.images && place.images.length > 0) {
-        const imageRows = place.images.map((img) => ({
+      // Sincroniza dicas secretas do local
+      if (place.tips && place.tips.length > 0) {
+        await supabase.from('secret_tips').delete().eq('place_id', place.id);
+        const tipRows = place.tips.map((t, idx) => ({
           place_id: place.id,
-          public_url: img.publicUrl,
-          position: img.position,
-          is_cover: img.isCover
+          title: t.title,
+          badge: t.badge || 'Dica dos Nativos',
+          description: t.description,
+          is_premium_only: t.isPremiumOnly !== false,
+          position: idx + 1
         }));
-        await supabase.from('place_images').upsert(imageRows);
+        await supabase.from('secret_tips').insert(tipRows);
       }
     } catch (e) {
       console.warn('Falha na sincronização assíncrona com Supabase:', e);
