@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon-192.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>JAMPA EXPERIENCE — Extraia o melhor que Jampa tem a oferecer</title>
+    <meta name="title" content="JAMPA EXPERIENCE — Extraia o melhor que Jampa tem a oferecer" />
+    <meta name="description" content="O Web App turístico premium definitivo de João Pessoa (PB). Descubra praias paradisíacas, restaurantes seletos, mirantes, roteiros prontos e dicas secretas de locais. Acesso vitalício por R$ 39,90." />
+    <meta name="keywords" content="João Pessoa, Paraíba, Jampa, turismo Paraíba, guia João Pessoa, praias João Pessoa, Tambaú, Cabo Branco, Pôr do Sol Jacaré, Ponta do Seixas, roteiros Jampa" />
+    <meta name="author" content="JAMPA EXPERIENCE" />
+    
+    <!-- PWA & Mobile Web App Capabilities -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#00B4D8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Jampa Exp" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jampaexperience.com.br/" />
+    <meta property="og:title" content="JAMPA EXPERIENCE — Guia Turístico Digital Premium" />
+    <meta property="og:description" content="Pague uma única vez (R$ 39,90) e tenha acesso vitalício ao melhor guia turístico interativo, mapas com GPS, roteiros e dicas secretas de João Pessoa." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="JAMPA EXPERIENCE — Extraia o melhor que Jampa tem a oferecer" />
+    <meta property="twitter:description" content="Guia turístico premium definitivo de João Pessoa com mapas, dicas locais e visual 3D imersivo." />
+    <meta property="twitter:image" content="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80" />
+
+    <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+
+    <!-- Schema.org Rich Snippet (JSON-LD) para SEO no Google -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "name": "JAMPA EXPERIENCE",
+            "url": "https://jampaexperience.com.br",
+            "applicationCategory": "TravelApplication",
+            "operatingSystem": "All",
+            "description": "Web App turístico premium com roteiros de 1, 3 e 5 dias, praias, restaurantes e mapas de João Pessoa - PB.",
+            "offers": {
+              "@type": "Offer",
+              "price": "39.90",
+              "priceCurrency": "BRL",
+              "availability": "https://schema.org/InStock"
+            }
+          },
+          {
+            "@type": "TouristDestination",
+            "name": "João Pessoa, Paraíba",
+            "description": "Capital da Paraíba conhecida pelas praias de águas mornas, falésias exuberantes e o ponto mais oriental das Américas.",
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": -7.115,
+              "longitude": -34.863
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

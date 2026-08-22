@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <circle cx="50" cy="50" r="48" fill="#060B11" stroke="#00B4D8" stroke-width="3"/>
+  <circle cx="50" cy="50" r="38" stroke="rgba(244,162,97,0.4)" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <!-- Sun & Sunset Glow -->
+  <circle cx="50" cy="42" r="14" fill="url(#sunGrad)"/>
+  <!-- Waves / Coast -->
+  <path d="M15 65 Q 32 55, 50 65 T 85 65 L 85 85 L 15 85 Z" fill="url(#waveGrad)"/>
+  <!-- Compass Point North -->
+  <polygon points="50,18 55,36 50,32 45,36" fill="#F4A261"/>
+  <defs>
+    <linearGradient id="sunGrad" x1="50" y1="28" x2="50" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4A261"/>
+      <stop offset="1" stop-color="#E76F51"/>
+    </linearGradient>
+    <linearGradient id="waveGrad" x1="15" y1="55" x2="85" y2="85" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00B4D8"/>
+      <stop offset="1" stop-color="#0077B6"/>
+    </linearGradient>
+  </defs>
+</svg>

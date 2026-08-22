@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B131E"/>
+      <stop offset="50%" stop-color="#060B11"/>
+      <stop offset="100%" stop-color="#020408"/>
+    </linearGradient>
+    <linearGradient id="primaryGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00B4D8"/>
+      <stop offset="100%" stop-color="#2EC4B6"/>
+    </linearGradient>
+    <linearGradient id="sunGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F4A261"/>
+      <stop offset="100%" stop-color="#E76F51"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo Circular -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad512)"/>
+  <circle cx="256" cy="256" r="215" stroke="url(#primaryGrad512)" stroke-width="8" stroke-opacity="0.3" fill="none"/>
+
+  <!-- Sol Nascente de Jampa -->
+  <circle cx="256" cy="198" r="70" fill="url(#sunGrad512)"/>
+
+  <!-- Ondas do Mar Estilizadas -->
+  <path d="M96 326 C150 288, 202 364, 256 326 C310 288, 362 364, 416 326 L416 416 L96 416 Z" fill="url(#primaryGrad512)" opacity="0.9"/>
+  <path d="M96 358 C150 326, 202 390, 256 358 C310 326, 362 390, 416 358 L416 416 L96 416 Z" fill="#0077B6" opacity="0.7"/>
+
+  <!-- Rosa dos Ventos / Bússola -->
+  <polygon points="256,118 272,198 256,182 240,198" fill="#FFFFFF"/>
+  <polygon points="256,278 272,198 256,214 240,198" fill="#E2E8F0"/>
+  <polygon points="176,198 256,214 238,198 256,182" fill="#CBD5E1"/>
+  <polygon points="336,198 256,214 274,198 256,182" fill="#94A3B8"/>
+  <circle cx="256" cy="198" r="10" fill="#060B11"/>
+</svg>
