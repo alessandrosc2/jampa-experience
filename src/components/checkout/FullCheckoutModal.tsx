@@ -45,15 +45,15 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Dados do Comprador
-  const [buyerName, setBuyerName] = useState(currentUser?.name || 'Alessandro Silva');
-  const [buyerEmail, setBuyerEmail] = useState(currentUser?.email || 'alessandro@exemplo.com.br');
-  const [buyerCpf, setBuyerCpf] = useState('123.456.789-00');
+  const [buyerName, setBuyerName] = useState(currentUser?.name || '');
+  const [buyerEmail, setBuyerEmail] = useState(currentUser?.email || '');
+  const [buyerCpf, setBuyerCpf] = useState('');
 
   // Dados do Cartão
-  const [cardNumber, setCardNumber] = useState('•••• •••• •••• 4829');
-  const [cardHolder, setCardHolder] = useState(buyerName);
-  const [cardExpiry, setCardExpiry] = useState('08/29');
-  const [cardCvv, setCardCvv] = useState('888');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardHolder, setCardHolder] = useState(currentUser?.name || '');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
   const [installments, setInstallments] = useState(1);
 
   // Transação Ativa
@@ -253,6 +253,7 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                     <input
                       type="text"
                       required
+                      placeholder="Ex: Carlos Santos"
                       value={buyerName}
                       onChange={(e) => setBuyerName(e.target.value)}
                       className="f-input"
@@ -263,6 +264,7 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                     <input
                       type="email"
                       required
+                      placeholder="seu.email@exemplo.com"
                       value={buyerEmail}
                       onChange={(e) => setBuyerEmail(e.target.value)}
                       className="f-input"
@@ -271,41 +273,42 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                 </div>
 
                 <div className="form-group">
-                  <label className="f-label">CPF do Pagador (para nota fiscal e PIX)</label>
+                  <label className="f-label">CPF do Pagador (Opcional - para identificação)</label>
                   <input
                     type="text"
-                    required
+                    placeholder="000.000.000-00 (Opcional)"
                     value={buyerCpf}
                     onChange={(e) => setBuyerCpf(e.target.value)}
                     className="f-input"
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  variant="gold"
-                  size="lg"
-                  fullWidth
-                  isLoading={loading}
-                  iconLeft={<QrCode size={20} />}
-                >
-                  GERAR PIX — R$ 39,90
-                </Button>
+                <div className="checkout-btn-wrapper">
+                  <Button
+                    type="submit"
+                    variant="gold"
+                    size="lg"
+                    fullWidth
+                    isLoading={loading}
+                    iconLeft={<QrCode size={20} />}
+                  >
+                    GERAR PIX — R$ 39,90
+                  </Button>
+                </div>
               </form>
             )}
 
             {/* FORMULÁRIO DO CARTÃO DE CRÉDITO */}
-            {/* FORMULÁRIO DO CARTÃO DE CRÉDITO */}
             {method === 'credit_card' && (
               <div className="method-form">
-                {/* Banner Oficial do Stripe Checkout */}
+                {/* Banner Oficial do Stripe Checkout (Recomendado) */}
                 <div className="stripe-checkout-promo glass-panel">
                   <div className="stripe-promo-header">
                     <div className="stripe-badge-pill">Stripe Oficial</div>
                     <span className="stripe-promo-title">Pagamento com Cartão de Crédito</span>
                   </div>
                   <p className="stripe-promo-desc">
-                    Aceita todos os cartões nacionais e internacionais (Visa, Mastercard, Elo, Hipercard, Amex, Apple Pay e Google Pay) em <strong>até 6x de R$ 7,15</strong> no ambiente seguro da Stripe.
+                    Processado diretamente no ambiente certificado da <strong>Stripe</strong>. Aceita todos os cartões nacionais e internacionais (Visa, Mastercard, Elo, Hipercard, Amex, Apple Pay e Google Pay) em <strong>até 6x de R$ 7,15</strong>.
                   </p>
                   <a
                     href={paymentService.getStripeCheckoutUrl()}
@@ -314,13 +317,13 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                     className="stripe-direct-checkout-btn"
                   >
                     <Lock size={18} />
-                    <span>PAGAR COM CARTÃO NO STRIPE (ATÉ 6X)</span>
+                    <span>PAGAR NO STRIPE CHECKOUT (ATÉ 6X)</span>
                     <ExternalLink size={18} />
                   </a>
                 </div>
 
                 <div className="card-divider-or">
-                  <span>ou preencha os dados do cartão abaixo</span>
+                  <span>ou preencha os dados do cartão</span>
                 </div>
 
                 <form onSubmit={handleProcessCard}>
@@ -330,6 +333,7 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                       <input
                         type="text"
                         required
+                        placeholder="Nome impresso no cartão"
                         value={cardHolder}
                         onChange={(e) => setCardHolder(e.target.value)}
                         className="f-input"
@@ -340,6 +344,7 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                       <input
                         type="email"
                         required
+                        placeholder="seu.email@exemplo.com"
                         value={buyerEmail}
                         onChange={(e) => setBuyerEmail(e.target.value)}
                         className="f-input"
@@ -359,6 +364,7 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                     <input
                       type="text"
                       required
+                      placeholder="0000 0000 0000 0000"
                       value={cardNumber}
                       onChange={(e) => setCardNumber(e.target.value)}
                       className="f-input"
@@ -371,6 +377,7 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                       <input
                         type="text"
                         required
+                        placeholder="MM/AA"
                         value={cardExpiry}
                         onChange={(e) => setCardExpiry(e.target.value)}
                         className="f-input"
@@ -382,6 +389,7 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                       <input
                         type="text"
                         required
+                        placeholder="123"
                         value={cardCvv}
                         onChange={(e) => setCardCvv(e.target.value)}
                         className="f-input"
@@ -389,7 +397,7 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                     </div>
                   </div>
 
-                  <div className="form-group">
+                  <div className="form-group form-group-installments">
                     <label className="f-label">Parcelamento</label>
                     <select
                       value={installments}
@@ -404,16 +412,18 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                     </select>
                   </div>
 
-                  <Button
-                    type="submit"
-                    variant="gold"
-                    size="lg"
-                    fullWidth
-                    isLoading={loading}
-                    iconLeft={<Lock size={18} />}
-                  >
-                    FINALIZAR PAGAMENTO COM CARTÃO (R$ 39,90)
-                  </Button>
+                  <div className="checkout-btn-wrapper">
+                    <Button
+                      type="submit"
+                      variant="gold"
+                      size="lg"
+                      fullWidth
+                      isLoading={loading}
+                      iconLeft={<Lock size={18} />}
+                    >
+                      FINALIZAR PAGAMENTO COM CARTÃO (R$ 39,90)
+                    </Button>
+                  </div>
                 </form>
               </div>
             )}
@@ -758,6 +768,14 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
           display: flex;
           flex-direction: column;
           gap: 0.3rem;
+        }
+
+        .form-group-installments {
+          margin-bottom: 0.75rem;
+        }
+
+        .checkout-btn-wrapper {
+          margin-top: 0.5rem;
         }
 
         .f-label-row {

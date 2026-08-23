@@ -35,11 +35,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   // Form states
   const [formData, setFormData] = useState({
-    name: 'Alessandro Silva',
-    email: 'alessandro@exemplo.com.br',
-    cardNumber: '•••• •••• •••• 4829',
-    cardExpiry: '08/29',
-    cardCvc: '•••'
+    name: '',
+    email: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvc: ''
   });
 
   const pixData = generateBacenPixPayload({ amount: 39.90 });
@@ -181,6 +181,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <label className="form-label">Nome Completo do Titular</label>
                   <input
                     type="text"
+                    placeholder="Nome impresso no cartão"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="form-input"
@@ -191,6 +192,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <label className="form-label">E-mail para Acesso</label>
                   <input
                     type="email"
+                    placeholder="seu.email@exemplo.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="form-input"
@@ -201,6 +203,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   <label className="form-label">Número do Cartão</label>
                   <input
                     type="text"
+                    placeholder="0000 0000 0000 0000"
                     value={formData.cardNumber}
                     onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
                     className="form-input"
@@ -212,6 +215,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <label className="form-label">Validade (MM/AA)</label>
                     <input
                       type="text"
+                      placeholder="MM/AA"
                       value={formData.cardExpiry}
                       onChange={(e) => setFormData({ ...formData, cardExpiry: e.target.value })}
                       className="form-input"
@@ -221,6 +225,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <label className="form-label">CVC / CVV</label>
                     <input
                       type="text"
+                      placeholder="123"
                       value={formData.cardCvc}
                       onChange={(e) => setFormData({ ...formData, cardCvc: e.target.value })}
                       className="form-input"
