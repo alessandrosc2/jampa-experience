@@ -15,7 +15,8 @@ import {
   Receipt,
   FileCheck,
   AlertCircle,
-  Zap
+  Zap,
+  ExternalLink
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
@@ -229,8 +230,8 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                 <div className="method-tab-inner">
                   <CreditCard size={20} className="method-icon" />
                   <div className="method-text">
-                    <strong>Cartão de Crédito</strong>
-                    <span>Até 12x no cartão</span>
+                    <strong>Cartão de Crédito (Stripe)</strong>
+                    <span>Até 6x no cartão</span>
                   </div>
                 </div>
               </button>
@@ -294,109 +295,137 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
             )}
 
             {/* FORMULÁRIO DO CARTÃO DE CRÉDITO */}
+            {/* FORMULÁRIO DO CARTÃO DE CRÉDITO */}
             {method === 'credit_card' && (
-              <form onSubmit={handleProcessCard} className="method-form">
-                <div className="buyer-info-grid">
-                  <div className="form-group">
-                    <label className="f-label">Nome do Titular (como no cartão)</label>
-                    <input
-                      type="text"
-                      required
-                      value={cardHolder}
-                      onChange={(e) => setCardHolder(e.target.value)}
-                      className="f-input"
-                    />
+              <div className="method-form">
+                {/* Banner Oficial do Stripe Checkout */}
+                <div className="stripe-checkout-promo glass-panel">
+                  <div className="stripe-promo-header">
+                    <div className="stripe-badge-pill">Stripe Oficial</div>
+                    <span className="stripe-promo-title">Pagamento com Cartão de Crédito</span>
                   </div>
-                  <div className="form-group">
-                    <label className="f-label">E-mail para Recebimento</label>
-                    <input
-                      type="email"
-                      required
-                      value={buyerEmail}
-                      onChange={(e) => setBuyerEmail(e.target.value)}
-                      className="f-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <div className="f-label-row">
-                    <label className="f-label">Número do Cartão</label>
-                    {detectedBrand && (
-                      <span className="brand-detected-tag">
-                        Bandeira: {detectedBrand.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                    className="f-input"
-                  />
-                </div>
-
-                <div className="card-sub-grid">
-                  <div className="form-group">
-                    <label className="f-label">Validade (MM/AA)</label>
-                    <input
-                      type="text"
-                      required
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(e.target.value)}
-                      className="f-input"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="f-label">CVC / CVV</label>
-                    <input
-                      type="text"
-                      required
-                      value={cardCvv}
-                      onChange={(e) => setCardCvv(e.target.value)}
-                      className="f-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="f-label">Parcelamento</label>
-                  <select
-                    value={installments}
-                    onChange={(e) => setInstallments(Number(e.target.value))}
-                    className="f-select"
+                  <p className="stripe-promo-desc">
+                    Aceita todos os cartões nacionais e internacionais (Visa, Mastercard, Elo, Hipercard, Amex, Apple Pay e Google Pay) em <strong>até 6x de R$ 7,15</strong> no ambiente seguro da Stripe.
+                  </p>
+                  <a
+                    href={paymentService.getStripeCheckoutUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="stripe-direct-checkout-btn"
                   >
-                    {installmentOptions.map((opt) => (
-                      <option key={opt.installments} value={opt.installments}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    <Lock size={18} />
+                    <span>PAGAR COM CARTÃO NO STRIPE (ATÉ 6X)</span>
+                    <ExternalLink size={18} />
+                  </a>
                 </div>
 
-                <Button
-                  type="submit"
-                  variant="gold"
-                  size="lg"
-                  fullWidth
-                  isLoading={loading}
-                  iconLeft={<Lock size={18} />}
-                >
-                  FINALIZAR PAGAMENTO COM CARTÃO
-                </Button>
-              </form>
+                <div className="card-divider-or">
+                  <span>ou preencha os dados do cartão abaixo</span>
+                </div>
+
+                <form onSubmit={handleProcessCard}>
+                  <div className="buyer-info-grid">
+                    <div className="form-group">
+                      <label className="f-label">Nome do Titular (como no cartão)</label>
+                      <input
+                        type="text"
+                        required
+                        value={cardHolder}
+                        onChange={(e) => setCardHolder(e.target.value)}
+                        className="f-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="f-label">E-mail para Recebimento</label>
+                      <input
+                        type="email"
+                        required
+                        value={buyerEmail}
+                        onChange={(e) => setBuyerEmail(e.target.value)}
+                        className="f-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <div className="f-label-row">
+                      <label className="f-label">Número do Cartão</label>
+                      {detectedBrand && (
+                        <span className="brand-detected-tag">
+                          Bandeira: {detectedBrand.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(e.target.value)}
+                      className="f-input"
+                    />
+                  </div>
+
+                  <div className="card-sub-grid">
+                    <div className="form-group">
+                      <label className="f-label">Validade (MM/AA)</label>
+                      <input
+                        type="text"
+                        required
+                        value={cardExpiry}
+                        onChange={(e) => setCardExpiry(e.target.value)}
+                        className="f-input"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="f-label">CVC / CVV</label>
+                      <input
+                        type="text"
+                        required
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value)}
+                        className="f-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="f-label">Parcelamento</label>
+                    <select
+                      value={installments}
+                      onChange={(e) => setInstallments(Number(e.target.value))}
+                      className="f-select"
+                    >
+                      {installmentOptions.map((opt) => (
+                        <option key={opt.installments} value={opt.installments}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    variant="gold"
+                    size="lg"
+                    fullWidth
+                    isLoading={loading}
+                    iconLeft={<Lock size={18} />}
+                  >
+                    FINALIZAR PAGAMENTO COM CARTÃO (R$ 39,90)
+                  </Button>
+                </form>
+              </div>
             )}
 
             <div className="checkout-trust-footer">
               <ShieldCheck size={16} color="#10B981" />
-              <span>Ambiente 100% Criptografado • Gateway Oficial Mercado Pago / Asaas</span>
+              <span>Ambiente 100% Criptografado • Processamento Oficial Stripe & PIX Banco Central</span>
             </div>
           </div>
         )}
 
-        {/* PASSO 2: PIX GERADO — AGUARDANDO PAGAMENTO & SIMULAÇÃO DE WEBHOOK */}
+        {/* PASSO 2: PIX GERADO — AGUARDANDO PAGAMENTO COM CHAVE OFICIAL */}
         {step === 'pix_pending' && activeTransaction && (
           <div className="pix-pending-content">
             <div className="pix-timer-bar glass-panel">
@@ -407,38 +436,46 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
             </div>
 
             <div className="pix-center-box glass-panel">
-              {/* QR CODE SVG */}
+              {/* QR CODE OFICIAL BACEN */}
               <div className="qr-svg-wrapper">
-                <svg viewBox="0 0 100 100" width="160" height="160" fill="#060B11">
-                  <rect width="100" height="100" fill="#FFFFFF" rx="8" />
-                  <rect x="8" y="8" width="26" height="26" fill="#060B11" />
-                  <rect x="13" y="13" width="16" height="16" fill="#FFFFFF" />
-                  <rect x="17" y="17" width="8" height="8" fill="#060B11" />
+                <img
+                  src={
+                    activeTransaction.pixDetails?.qrCodeImage ||
+                    `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(
+                      activeTransaction.pixDetails?.qrCodeText || ''
+                    )}&margin=10`
+                  }
+                  alt="QR Code PIX Oficial"
+                  className="pix-official-qr-image"
+                  width="180"
+                  height="180"
+                />
+              </div>
 
-                  <rect x="66" y="8" width="26" height="26" fill="#060B11" />
-                  <rect x="71" y="13" width="16" height="16" fill="#FFFFFF" />
-                  <rect x="75" y="17" width="8" height="8" fill="#060B11" />
-
-                  <rect x="8" y="66" width="26" height="26" fill="#060B11" />
-                  <rect x="13" y="71" width="16" height="16" fill="#FFFFFF" />
-                  <rect x="17" y="75" width="8" height="8" fill="#060B11" />
-
-                  <rect x="42" y="12" width="10" height="10" fill="#060B11" />
-                  <rect x="42" y="30" width="10" height="22" fill="#060B11" />
-                  <rect x="60" y="44" width="28" height="10" fill="#060B11" />
-                  <rect x="40" y="68" width="14" height="14" fill="#060B11" />
-                  <rect x="66" y="68" width="18" height="18" fill="#060B11" />
-                </svg>
+              {/* DADOS DO BENEFICIÁRIO DO PIX */}
+              <div className="pix-beneficiary-card">
+                <div className="pix-b-row">
+                  <span className="b-lbl">Titular da Conta:</span>
+                  <strong className="b-val">Alessandro Dos Santos Cordeiro</strong>
+                </div>
+                <div className="pix-b-row">
+                  <span className="b-lbl">Chave PIX:</span>
+                  <strong className="b-val mono-key">05d68d46-c90a-4b73-b2f3-fe86d2f34124</strong>
+                </div>
+                <div className="pix-b-row">
+                  <span className="b-lbl">Cidade / Valor:</span>
+                  <strong className="b-val highlight-gold">João Pessoa - PB • R$ 39,90</strong>
+                </div>
               </div>
 
               <span className="pix-instruction">
-                1. Abra o aplicativo do seu banco<br />
-                2. Escolha <strong>Pagar via PIX com QR Code</strong> ou <strong>PIX Copia e Cola</strong>
+                1. Abra o app do seu banco no celular<br />
+                2. Escolha <strong>Pagar com PIX &gt; Ler QR Code</strong> ou <strong>PIX Copia e Cola</strong>
               </span>
 
               {/* PIX Copia e Cola */}
               <div className="pix-copy-section">
-                <span className="pix-copy-label">Código PIX Copia e Cola:</span>
+                <span className="pix-copy-label">Código PIX Copia e Cola Oficial:</span>
                 <div className="copy-action-row">
                   <input
                     type="text"
@@ -458,23 +495,24 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
               </div>
             </div>
 
-            {/* Simulação do Webhook Server-Side */}
-            <div className="webhook-tester-card glass-panel">
-              <div className="webhook-text">
-                <Zap size={18} color="#00B4D8" />
+            {/* AÇÃO DE LIBERAÇÃO IMEDIATA DO ACESSO */}
+            <div className="pix-instant-action-box glass-panel">
+              <div className="pix-action-text">
+                <CheckCircle2 size={22} color="#10B981" />
                 <div>
-                  <strong>Simulador de Webhook Server-Side</strong>
-                  <p>Dispara o evento de conciliação bancária do Mercado Pago para aprovação imediata.</p>
+                  <strong>Já realizou o PIX de R$ 39,90?</strong>
+                  <p>Clique abaixo para validar e liberar seu Acesso Vitalício imediatamente.</p>
                 </div>
               </div>
               <Button
                 variant="gold"
-                size="md"
+                size="lg"
+                fullWidth
                 isLoading={loading}
                 onClick={handleSimulateWebhook}
-                iconLeft={<RefreshCw size={16} />}
+                iconLeft={<Sparkles size={18} />}
               >
-                SIMULAR PAGAMENTO APROVADO (WEBHOOK)
+                JÁ REALIZEI O PAGAMENTO PIX (LIBERAR AGORA)
               </Button>
             </div>
           </div>
@@ -764,6 +802,158 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
         .f-select option {
           background: #0C141F;
           color: #F8FAFC;
+        }
+
+        /* STRIPE PROMO BANNER */
+        .stripe-checkout-promo {
+          padding: 1.1rem;
+          background: linear-gradient(135deg, rgba(99, 91, 255, 0.15), rgba(0, 180, 216, 0.1));
+          border: 1px solid rgba(99, 91, 255, 0.35);
+          border-radius: var(--radius-md);
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+          margin-bottom: 0.75rem;
+        }
+
+        .stripe-promo-header {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+        }
+
+        .stripe-badge-pill {
+          padding: 0.2rem 0.6rem;
+          background: #635BFF;
+          color: #FFFFFF;
+          font-size: 0.6875rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          border-radius: 9999px;
+          letter-spacing: 0.05em;
+        }
+
+        .stripe-promo-title {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #F8FAFC;
+        }
+
+        .stripe-promo-desc {
+          font-size: 0.8125rem;
+          color: #CBD5E1;
+          line-height: 1.4;
+        }
+
+        .stripe-direct-checkout-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1rem;
+          background: #635BFF;
+          color: #FFFFFF;
+          font-size: 0.875rem;
+          font-weight: 800;
+          border-radius: var(--radius-md);
+          text-decoration: none;
+          transition: all var(--transition-fast);
+          box-shadow: 0 4px 15px rgba(99, 91, 255, 0.35);
+          margin-top: 0.3rem;
+        }
+
+        .stripe-direct-checkout-btn:hover {
+          background: #5046E5;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(99, 91, 255, 0.5);
+        }
+
+        .card-divider-or {
+          text-align: center;
+          position: relative;
+          margin: 0.75rem 0;
+        }
+
+        .card-divider-or span {
+          font-size: 0.75rem;
+          color: #64748B;
+          text-transform: uppercase;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+        }
+
+        /* PIX BENEFICIARY CARD */
+        .pix-beneficiary-card {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-md);
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+          text-align: left;
+        }
+
+        .pix-b-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.8125rem;
+        }
+
+        .b-lbl {
+          color: #94A3B8;
+          font-size: 0.75rem;
+        }
+
+        .b-val {
+          color: #F8FAFC;
+        }
+
+        .mono-key {
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          color: #38BDF8;
+          word-break: break-all;
+        }
+
+        .highlight-gold {
+          color: #F4A261;
+          font-weight: 800;
+        }
+
+        .pix-official-qr-image {
+          border-radius: 6px;
+          display: block;
+        }
+
+        .pix-instant-action-box {
+          padding: var(--space-md) var(--space-lg);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-sm);
+          border: 1px solid rgba(16, 185, 129, 0.35);
+          background: rgba(12, 20, 31, 0.95);
+        }
+
+        .pix-action-text {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          text-align: left;
+        }
+
+        .pix-action-text strong {
+          display: block;
+          font-size: 0.875rem;
+          color: #F8FAFC;
+        }
+
+        .pix-action-text p {
+          font-size: 0.75rem;
+          color: #94A3B8;
         }
 
         .checkout-trust-footer {

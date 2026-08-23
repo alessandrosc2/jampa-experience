@@ -10,6 +10,7 @@ import {
 } from '../types/payment';
 import { User } from '../types/user';
 import { authService } from './authService';
+import { generateBacenPixPayload, STRIPE_CHECKOUT_URL } from '../utils/pixUtils';
 
 const STORAGE_TRANSACTIONS_KEY = 'jampa_transactions_db';
 const BASE_AMOUNT = 39.90;
@@ -34,9 +35,12 @@ class PaymentService {
       { installments: 1, installmentAmount: 39.90, totalAmount: 39.90, label: '1x de R$ 39,90 (sem juros)' },
       { installments: 2, installmentAmount: 20.45, totalAmount: 40.90, label: '2x de R$ 20,45' },
       { installments: 3, installmentAmount: 13.80, totalAmount: 41.40, label: '3x de R$ 13,80' },
-      { installments: 6, installmentAmount: 7.15, totalAmount: 42.90, label: '6x de R$ 7,15' },
-      { installments: 12, installmentAmount: 3.99, totalAmount: 47.88, label: '12x de R$ 3,99' }
+      { installments: 6, installmentAmount: 7.15, totalAmount: 42.90, label: '6x de R$ 7,15' }
     ];
+  }
+
+  public getStripeCheckoutUrl(): string {
+    return STRIPE_CHECKOUT_URL;
   }
 
   public detectCardBrand(cardNumber: string): 'visa' | 'mastercard' | 'elo' | 'hipercard' | 'amex' | undefined {
@@ -53,15 +57,16 @@ class PaymentService {
     user: { id?: string; name: string; email: string },
     gateway: PaymentGateway = 'mercadopago'
   ): Promise<PaymentTransaction> {
-    // Delay de comunicação com a API do gateway (Mercado Pago / Asaas)
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 400));
 
     const orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
     const txId = 'TX-PIX-' + Date.now();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutos
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-    const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const pixCode = `00020126580014br.gov.bcb.pix0136jampa-experience-${orderId}-${randomSuffix}520400005303986540539.905802BR5925JAMPA EXPERIENCE BRASIL6011JOAO PESSOA62070503***6304`;
+    const pixData = generateBacenPixPayload({
+      amount: BASE_AMOUNT,
+      txid: orderId.replace(/\D/g, '')
+    });
 
     const transaction: PaymentTransaction = {
       id: txId,
@@ -70,7 +75,7 @@ class PaymentService {
       userName: user.name,
       userEmail: user.email,
       gateway,
-      gatewayTransactionId: 'MP-PIX-' + Math.floor(10000000 + Math.random() * 90000000),
+      gatewayTransactionId: 'PIX-DIRECT-' + Date.now(),
       paymentMethod: 'pix',
       amount: BASE_AMOUNT,
       currency: 'BRL',
@@ -78,7 +83,8 @@ class PaymentService {
       statusDetail: 'Aguardando pagamento do PIX pelo comprador',
       installments: 1,
       pixDetails: {
-        qrCodeText: pixCode,
+        qrCodeText: pixData.payload,
+        qrCodeImage: pixData.qrCodeUrl,
         expiresAt,
         expirationSecondsRemaining: 900
       },

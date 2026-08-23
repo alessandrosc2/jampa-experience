@@ -9,11 +9,13 @@ import {
   Check,
   Lock,
   ArrowRight,
-  Infinity
+  Infinity,
+  ExternalLink
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
+import { generateBacenPixPayload, STRIPE_CHECKOUT_URL } from '../../utils/pixUtils';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -40,11 +42,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     cardCvc: '•••'
   });
 
-  const pixCode =
-    '00020126580014br.gov.bcb.pix0136jampa-experience-vitalicio-3990520400005303986540539.905802BR5925JAMPA EXPERIENCE BRASIL6011JOAO PESSOA62070503***6304E8A2';
+  const pixData = generateBacenPixPayload({ amount: 39.90 });
 
   const handleCopyPix = () => {
-    navigator.clipboard.writeText(pixCode);
+    navigator.clipboard.writeText(pixData.payload);
     setCopiedPix(true);
     setTimeout(() => setCopiedPix(false), 2500);
   };
@@ -106,7 +107,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 onClick={() => setMethod('card')}
               >
                 <CreditCard size={18} />
-                <span>Cartão de Crédito</span>
+                <span>Cartão de Crédito (Stripe)</span>
               </button>
             </div>
 
@@ -114,31 +115,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             {method === 'pix' ? (
               <div className="pix-checkout-box glass-panel">
                 <div className="pix-qr-wrap">
-                  {/* QR Code Simulado SVG */}
-                  <div className="simulated-qr">
-                    <svg viewBox="0 0 100 100" width="140" height="140" fill="#060B11">
-                      <rect width="100" height="100" fill="#FFFFFF" rx="8" />
-                      {/* Standard QR squares simulation */}
-                      <rect x="10" y="10" width="25" height="25" fill="#060B11" />
-                      <rect x="15" y="15" width="15" height="15" fill="#FFFFFF" />
-                      <rect x="18" y="18" width="9" height="9" fill="#060B11" />
-
-                      <rect x="65" y="10" width="25" height="25" fill="#060B11" />
-                      <rect x="70" y="15" width="15" height="15" fill="#FFFFFF" />
-                      <rect x="73" y="18" width="9" height="9" fill="#060B11" />
-
-                      <rect x="10" y="65" width="25" height="25" fill="#060B11" />
-                      <rect x="15" y="70" width="15" height="15" fill="#FFFFFF" />
-                      <rect x="18" y="73" width="9" height="9" fill="#060B11" />
-
-                      <rect x="42" y="15" width="8" height="8" fill="#060B11" />
-                      <rect x="42" y="30" width="8" height="16" fill="#060B11" />
-                      <rect x="55" y="45" width="25" height="8" fill="#060B11" />
-                      <rect x="40" y="65" width="12" height="12" fill="#060B11" />
-                      <rect x="65" y="65" width="15" height="15" fill="#060B11" />
-                    </svg>
+                  {/* QR Code Real em Imagem de Alta Resolução */}
+                  <img
+                    src={pixData.qrCodeUrl}
+                    alt="QR Code PIX Oficial"
+                    className="pix-real-img"
+                    width="150"
+                    height="150"
+                  />
+                  <div className="pix-beneficiary-mini">
+                    <span>Titular: <strong>Alessandro Dos Santos Cordeiro</strong></span>
+                    <span>Chave: <strong className="mono">05d68d46-c90a-4b73-b2f3-fe86d2f34124</strong></span>
                   </div>
-                  <span className="qr-instruction">Escaneie o QR Code no app do seu banco</span>
+                  <span className="qr-instruction">Abra o app do seu banco e escaneie o QR Code</span>
                 </div>
 
                 <div className="pix-copy-paste-block">
@@ -147,7 +136,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <input
                       type="text"
                       readOnly
-                      value={pixCode}
+                      value={pixData.payload}
                       className="pix-code-field"
                     />
                     <button className="copy-code-btn" onClick={handleCopyPix}>
@@ -166,12 +155,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     onClick={handleSimulatePayment}
                     iconLeft={<Sparkles size={18} />}
                   >
-                    CONFIRMAR PAGAMENTO PIX (R$ 39,90)
+                    JÁ REALIZEI O PIX (LIBERAR ACESSO)
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="card-checkout-box glass-panel">
+                {/* Banner Stripe Checkout */}
+                <div className="stripe-quick-box">
+                  <strong>Checkout Oficial Stripe</strong>
+                  <p>Aceita cartões nacionais e internacionais (Visa, Master, Elo, Hiper, Amex, Apple Pay e Google Pay) em até 6x.</p>
+                  <a
+                    href={STRIPE_CHECKOUT_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="stripe-quick-btn"
+                  >
+                    <Lock size={16} />
+                    <span>Pagar no Stripe (Até 6x de R$ 7,15)</span>
+                    <ExternalLink size={16} />
+                  </a>
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">Nome Completo do Titular</label>
                   <input
@@ -440,6 +445,72 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
           font-family: var(--font-mono);
           font-size: 0.75rem;
           outline: none;
+        }
+
+        .stripe-quick-box {
+          padding: 1rem;
+          background: linear-gradient(135deg, rgba(99, 91, 255, 0.15), rgba(0, 180, 216, 0.1));
+          border: 1px solid rgba(99, 91, 255, 0.35);
+          border-radius: var(--radius-md);
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+          margin-bottom: 0.75rem;
+          text-align: left;
+        }
+
+        .stripe-quick-box strong {
+          color: #F8FAFC;
+          font-size: 0.875rem;
+        }
+
+        .stripe-quick-box p {
+          color: #CBD5E1;
+          font-size: 0.75rem;
+        }
+
+        .stripe-quick-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.4rem;
+          padding: 0.65rem 1rem;
+          background: #635BFF;
+          color: #FFFFFF;
+          font-size: 0.8125rem;
+          font-weight: 800;
+          border-radius: var(--radius-md);
+          text-decoration: none;
+          margin-top: 0.3rem;
+        }
+
+        .stripe-quick-btn:hover {
+          background: #5046E5;
+        }
+
+        .pix-real-img {
+          border-radius: 6px;
+          display: block;
+          background: #FFFFFF;
+          padding: 4px;
+        }
+
+        .pix-beneficiary-mini {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+          font-size: 0.75rem;
+          color: #94A3B8;
+          text-align: center;
+        }
+
+        .pix-beneficiary-mini strong {
+          color: #F8FAFC;
+        }
+
+        .pix-beneficiary-mini .mono {
+          font-family: var(--font-mono);
+          color: #38BDF8;
         }
 
         .copy-code-btn {

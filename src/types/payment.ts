@@ -14,6 +14,7 @@ export type PaymentStatus =
 
 export interface PixDetails {
   qrCodeBase64?: string;
+  qrCodeImage?: string;
   qrCodeText: string;
   expiresAt: string;
   expirationSecondsRemaining: number;
