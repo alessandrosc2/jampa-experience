@@ -88,7 +88,7 @@ export const LgpdConsentBanner: React.FC<LgpdConsentBannerProps> = ({
 
         @media (max-width: 768px) {
           .lgpd-banner-wrapper {
-            bottom: 4.8rem; /* Acima da barra de navegação inferior */
+            bottom: calc(4.6rem + env(safe-area-inset-bottom, 12px)); /* Acima da barra de navegação inferior */
             left: 0.75rem;
             right: 0.75rem;
           }
