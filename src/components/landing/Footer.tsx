@@ -121,6 +121,20 @@ export const Footer: React.FC<FooterProps> = ({ isVipMode = false, onOpenPrivacy
               </button>
             )}
           </div>
+
+          <div className="developer-credit-group">
+            <span>Criado e desenvolvido por</span>
+            <a
+              href="https://multyplique.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="developer-link"
+              title="Acessar Multy Technology"
+            >
+              <strong>Multy Technology</strong>
+            </a>
+          </div>
+
           <div className="made-with-love">
             Feito com <Heart size={14} fill="#E63946" color="#E63946" /> para apaixonados por João Pessoa
           </div>
@@ -314,6 +328,28 @@ export const Footer: React.FC<FooterProps> = ({ isVipMode = false, onOpenPrivacy
           color: #00B4D8;
         }
 
+        .developer-credit-group {
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+          font-size: 0.75rem;
+          color: #94A3B8;
+        }
+
+        .developer-link {
+          color: #00B4D8;
+          text-decoration: none;
+          font-weight: 700;
+          transition: color var(--transition-fast), text-shadow var(--transition-fast);
+        }
+
+        .developer-link:hover {
+          color: #38BDF8;
+          text-decoration: underline;
+          text-underline-offset: 3px;
+          text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
         .made-with-love {
           display: flex;
           align-items: center;
@@ -323,6 +359,21 @@ export const Footer: React.FC<FooterProps> = ({ isVipMode = false, onOpenPrivacy
         @media (max-width: 960px) {
           .footer-top-grid {
             grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .site-footer {
+            padding-bottom: calc(var(--space-3xl) + 4.5rem);
+          }
+          .footer-bottom-row {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.75rem;
+          }
+          .copyright-group {
+            justify-content: center;
           }
         }
 
