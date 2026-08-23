@@ -3,18 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon-192.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     
-    <!-- Primary Meta Tags -->
-    <title>JAMPA EXPERIENCE — Extraia o melhor que Jampa tem a oferecer</title>
-    <meta name="title" content="JAMPA EXPERIENCE — Extraia o melhor que Jampa tem a oferecer" />
-    <meta name="description" content="O Web App turístico premium definitivo de João Pessoa (PB). Descubra praias paradisíacas, restaurantes seletos, mirantes, roteiros prontos e dicas secretas de locais. Acesso vitalício por R$ 39,90." />
-    <meta name="keywords" content="João Pessoa, Paraíba, Jampa, turismo Paraíba, guia João Pessoa, praias João Pessoa, Tambaú, Cabo Branco, Pôr do Sol Jacaré, Ponta do Seixas, roteiros Jampa" />
+    <!-- Primary Meta Tags & SEO -->
+    <title>JAMPA EXPERIENCE — Guia Turístico Digital de João Pessoa (PB)</title>
+    <meta name="title" content="JAMPA EXPERIENCE — Guia Turístico Digital de João Pessoa (PB)" />
+    <meta name="description" content="O Web App turístico premium definitivo de João Pessoa (PB). Roteiros de 1, 3 e 5 dias, praias paradisíacas, restaurantes premiados, mapas interativos com GPS e dicas secretas dos nativos. Acesso vitalício." />
+    <meta name="keywords" content="João Pessoa, Paraíba, Jampa, turismo João Pessoa, guia João Pessoa, praias João Pessoa, Tambaú, Cabo Branco, Pôr do Sol Jacaré, Ponta do Seixas, Picãozinho, Piscinas Naturais do Seixas, roteiros Jampa, onde comer João Pessoa" />
     <meta name="author" content="JAMPA EXPERIENCE" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://jampaexperience.online/" />
+
+    <!-- Local SEO Geo-Targeting (João Pessoa - Paraíba) -->
+    <meta name="geo.region" content="BR-PB" />
+    <meta name="geo.placename" content="João Pessoa" />
+    <meta name="geo.position" content="-7.115;-34.863" />
+    <meta name="ICBM" content="-7.115, -34.863" />
     
     <!-- PWA & Mobile Web App Capabilities -->
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#00B4D8" />
+    <meta name="theme-color" content="#060B11" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Jampa Exp" />
@@ -22,50 +33,104 @@
 
     <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://jampaexperience.com.br/" />
-    <meta property="og:title" content="JAMPA EXPERIENCE — Guia Turístico Digital Premium" />
-    <meta property="og:description" content="Pague uma única vez (R$ 39,90) e tenha acesso vitalício ao melhor guia turístico interativo, mapas com GPS, roteiros e dicas secretas de João Pessoa." />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="JAMPA EXPERIENCE" />
+    <meta property="og:url" content="https://jampaexperience.online/" />
+    <meta property="og:title" content="JAMPA EXPERIENCE — Guia Turístico Digital Premium de João Pessoa" />
+    <meta property="og:description" content="Acesse o melhor guia interativo com mapas GPS, roteiros prontos de 1 a 5 dias, praias e dicas secretas dos nativos de João Pessoa por apenas R$ 39,90 (Acesso Vitalício)." />
     <meta property="og:image" content="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Praia paradisíaca em João Pessoa - JAMPA EXPERIENCE" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:title" content="JAMPA EXPERIENCE — Extraia o melhor que Jampa tem a oferecer" />
-    <meta property="twitter:description" content="Guia turístico premium definitivo de João Pessoa com mapas, dicas locais e visual 3D imersivo." />
-    <meta property="twitter:image" content="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://jampaexperience.online/" />
+    <meta name="twitter:title" content="JAMPA EXPERIENCE — Guia Turístico Digital de João Pessoa" />
+    <meta name="twitter:description" content="Descubra praias paradisíacas, restaurantes, mirantes e roteiros em João Pessoa com geolocalização e dicas locais." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80" />
 
-    <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+    <!-- Performance: DNS Prefetch & Google Fonts -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
 
-    <!-- Schema.org Rich Snippet (JSON-LD) para SEO no Google -->
+    <!-- Schema.org Rich Snippets (JSON-LD) para SEO no Google -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
           {
             "@type": "WebApplication",
+            "@id": "https://jampaexperience.online/#app",
             "name": "JAMPA EXPERIENCE",
-            "url": "https://jampaexperience.com.br",
+            "url": "https://jampaexperience.online",
             "applicationCategory": "TravelApplication",
             "operatingSystem": "All",
-            "description": "Web App turístico premium com roteiros de 1, 3 e 5 dias, praias, restaurantes e mapas de João Pessoa - PB.",
+            "description": "Web App turístico premium com roteiros de 1, 3 e 5 dias, praias, restaurantes e mapas interativos de João Pessoa - PB.",
             "offers": {
               "@type": "Offer",
               "price": "39.90",
               "priceCurrency": "BRL",
-              "availability": "https://schema.org/InStock"
+              "availability": "https://schema.org/InStock",
+              "url": "https://jampaexperience.online/#oferta"
             }
           },
           {
             "@type": "TouristDestination",
             "name": "João Pessoa, Paraíba",
-            "description": "Capital da Paraíba conhecida pelas praias de águas mornas, falésias exuberantes e o ponto mais oriental das Américas.",
+            "description": "Capital da Paraíba conhecida pelas praias de águas mornas, piscinas naturais exuberantes e o ponto mais oriental das Américas.",
             "geo": {
               "@type": "GeoCoordinates",
               "latitude": -7.115,
               "longitude": -34.863
-            }
+            },
+            "touristType": [
+              "Praias e Piscinas Naturais",
+              "Gastronomia Regional",
+              "Pôr do Sol no Jacaré",
+              "Centro Histórico e Cultura"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "O que é o JAMPA EXPERIENCE?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "O JAMPA EXPERIENCE é o guia turístico digital premium e interativo de João Pessoa (PB), reunindo praias, piscinas naturais, restaurantes recomendados, roteiros prontos de 1, 3 e 5 dias e dicas secretas dos nativos."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Como funciona o Acesso Vitalício de R$ 39,90?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Você paga uma taxa única de R$ 39,90 via PIX ou Cartão de Crédito (em até 6x) e tem acesso ilimitado para sempre, incluindo todas as atualizações futuras sem mensalidades."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "O que fazer em João Pessoa em 3 ou 5 dias?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "O JAMPA EXPERIENCE inclui roteiros completos dia a dia para visitar as Piscinas Naturais do Seixas e Picãozinho, as praias de Tambaú e Cabo Branco, o Pôr do Sol na Praia do Jacaré ao som do Bolero de Ravel, o Farol do Cabo Branco e o Centro Histórico."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "O guia funciona no celular durante a viagem?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Sim! O guia é um Progressive Web App (PWA) 100% responsivo, com navegação pelo polegar (Thumb Zone), mapa com geolocalização GPS e suporte para salvar locais favoritos offline."
+                }
+              }
+            ]
           }
         ]
       }

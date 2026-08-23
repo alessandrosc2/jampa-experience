@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /PainelAdmin01
+Disallow: /paineladmin01
+
+Sitemap: https://jampaexperience.online/sitemap.xml

@@ -111,7 +111,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           left: 0;
           right: 0;
           z-index: 990;
-          padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+          padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom, 12px));
           pointer-events: none;
           display: none;
         }
