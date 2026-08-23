@@ -98,8 +98,8 @@ export const Footer: React.FC<FooterProps> = ({ isVipMode = false, onOpenPrivacy
 
             <p className="footer-support-note">
               Suporte oficial: <br />
-              <a href="mailto:contato@jampaexperience.com.br" className="support-email">
-                contato@jampaexperience.com.br
+              <a href="mailto:jampaexperience@gmail.com" className="support-email">
+                jampaexperience@gmail.com
               </a>
             </p>
           </div>
