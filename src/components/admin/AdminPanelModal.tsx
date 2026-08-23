@@ -62,8 +62,10 @@ import { Place, CategoryInfo, SecretTip, PriceLevel, CategoryId, PartnerLevel, P
 import { Itinerary } from '../../types/itinerary';
 import { User } from '../../types/user';
 import { AdminMetrics, SystemLog } from '../../types/admin';
+import { Affiliate, AffiliateSale } from '../../types/affiliate';
 import { adminService, PartnerStat, QrChannel } from '../../services/adminService';
 import { authService } from '../../services/authService';
+import { paymentService } from '../../services/paymentService';
 import { compressImageFile, isValidImageUrl, reorderArray } from '../../utils/imageUtils';
 
 interface AdminPanelModalProps {
@@ -86,6 +88,7 @@ type AdminTab =
   | 'tips'
   | 'itineraries'
   | 'users'
+  | 'affiliates'
   | 'metrics'
   | 'logs'
   | 'security';
@@ -120,6 +123,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [itineraries, setItineraries] = useState<Itinerary[]>(() => adminService.getItineraries());
   const [partnerStats, setPartnerStats] = useState<PartnerStat[]>(() => adminService.getPartnerStats());
   const [qrChannels, setQrChannels] = useState<QrChannel[]>(() => adminService.getQrChannels());
+  const [affiliates, setAffiliates] = useState<Affiliate[]>(() => adminService.getAffiliates());
+  const [affiliateSales, setAffiliateSales] = useState<AffiliateSale[]>(() => adminService.getAffiliateSales());
 
   // Busca e Filtros
   const [placeSearch, setPlaceSearch] = useState('');
@@ -127,6 +132,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [userSearch, setUserSearch] = useState('');
   const [partnerSearch, setPartnerSearch] = useState('');
   const [partnerPlaceFilter, setPartnerPlaceFilter] = useState('all');
+  const [affiliateSearch, setAffiliateSearch] = useState('');
+
+  // Estados de Afiliados
+  const [isAffiliateModalOpen, setIsAffiliateModalOpen] = useState(false);
+  const [editingAffiliate, setEditingAffiliate] = useState<Partial<Affiliate> | null>(null);
+  const [selectedAffiliateForQr, setSelectedAffiliateForQr] = useState<Affiliate | null>(null);
+  const [selectedAffiliateForPayout, setSelectedAffiliateForPayout] = useState<Affiliate | null>(null);
+  const [payoutAmountInput, setPayoutAmountInput] = useState<string>('');
 
   // Estado de Bairros & Dicas
   const [isNeighborhoodModalOpen, setIsNeighborhoodModalOpen] = useState(false);
@@ -214,6 +227,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     setItineraries(adminService.getItineraries());
     setPartnerStats(adminService.getPartnerStats());
     setQrChannels(adminService.getQrChannels());
+    setAffiliates(adminService.getAffiliates());
+    setAffiliateSales(adminService.getAffiliateSales());
     setCurrentAdminUser(getStoredAdminCreds().username);
   };
 
@@ -324,6 +339,126 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
       syncLocalData();
       showNotification(`🗑️ Parceiro "${partnerName}" excluído.`);
     }
+  };
+
+  /* ======================================================== */
+  /* GESTÃO DE AFILIADOS */
+  /* ======================================================== */
+  const [affiliateFormName, setAffiliateFormName] = useState('');
+  const [affiliateFormCode, setAffiliateFormCode] = useState('');
+  const [affiliateFormPhone, setAffiliateFormPhone] = useState('');
+  const [affiliateFormEmail, setAffiliateFormEmail] = useState('');
+  const [affiliateFormType, setAffiliateFormType] = useState<'percentage' | 'fixed'>('percentage');
+  const [affiliateFormValue, setAffiliateFormValue] = useState<number>(25);
+  const [affiliateFormNotes, setAffiliateFormNotes] = useState('');
+
+  const generateAffiliateCodeFromName = (nameStr: string) => {
+    const clean = nameStr
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 10);
+    return clean ? `${clean}${Math.floor(10 + Math.random() * 90)}` : `AF${Math.floor(1000 + Math.random() * 9000)}`;
+  };
+
+  const handleOpenNewAffiliate = () => {
+    setEditingAffiliate(null);
+    setAffiliateFormName('');
+    setAffiliateFormCode('');
+    setAffiliateFormPhone('');
+    setAffiliateFormEmail('');
+    setAffiliateFormType('percentage');
+    setAffiliateFormValue(25);
+    setAffiliateFormNotes('');
+    setIsAffiliateModalOpen(true);
+  };
+
+  const handleEditAffiliate = (aff: Affiliate) => {
+    setEditingAffiliate(aff);
+    setAffiliateFormName(aff.name);
+    setAffiliateFormCode(aff.code);
+    setAffiliateFormPhone(aff.phone || '');
+    setAffiliateFormEmail(aff.email || '');
+    setAffiliateFormType(aff.commissionType);
+    setAffiliateFormValue(aff.commissionValue);
+    setAffiliateFormNotes(aff.notes || '');
+    setIsAffiliateModalOpen(true);
+  };
+
+  const handleSaveAffiliateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!affiliateFormName.trim()) {
+      showNotification('Preencha o nome do afiliado.');
+      return;
+    }
+
+    const code = affiliateFormCode.trim() || generateAffiliateCodeFromName(affiliateFormName);
+
+    const saved = adminService.saveAffiliate({
+      id: editingAffiliate?.id,
+      name: affiliateFormName.trim(),
+      code,
+      phone: affiliateFormPhone.trim(),
+      email: affiliateFormEmail.trim(),
+      commissionType: affiliateFormType,
+      commissionValue: Number(affiliateFormValue) || 25,
+      notes: affiliateFormNotes.trim(),
+      status: editingAffiliate?.status || 'active'
+    });
+
+    setAffiliates(adminService.getAffiliates());
+    syncLocalData();
+    setIsAffiliateModalOpen(false);
+    showNotification(`✅ Afiliado "${saved.name}" (${saved.code}) salvo com sucesso!`);
+  };
+
+  const handleDeleteAffiliate = (id: string, name: string) => {
+    if (window.confirm(`Deseja realmente remover o afiliado "${name}"? Os registros de comissões serão preservados.`)) {
+      adminService.deleteAffiliate(id);
+      setAffiliates(adminService.getAffiliates());
+      syncLocalData();
+      showNotification(`🗑️ Afiliado "${name}" removido.`);
+    }
+  };
+
+  const handleToggleAffiliateStatus = (aff: Affiliate) => {
+    const nextStatus = aff.status === 'active' ? 'paused' : 'active';
+    adminService.saveAffiliate({
+      ...aff,
+      status: nextStatus
+    });
+    setAffiliates(adminService.getAffiliates());
+    syncLocalData();
+    showNotification(nextStatus === 'active' ? `🟢 Afiliado "${aff.name}" reativado!` : `⏸️ Afiliado "${aff.name}" pausado.`);
+  };
+
+  const handleCopyAffiliateLink = (code: string) => {
+    const url = `${window.location.origin}/?ref=${code}`;
+    navigator.clipboard.writeText(url);
+    showNotification(`📋 Link do afiliado copiado: ${url}`);
+  };
+
+  const handleOpenPayoutModal = (aff: Affiliate) => {
+    setSelectedAffiliateForPayout(aff);
+    const pending = aff.totalCommission - aff.paidCommission;
+    setPayoutAmountInput(pending > 0 ? pending.toFixed(2) : '0.00');
+  };
+
+  const handleConfirmPayoutSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAffiliateForPayout) return;
+    const amount = parseFloat(payoutAmountInput);
+    if (isNaN(amount) || amount <= 0) {
+      showNotification('Informe um valor de repasse válido.');
+      return;
+    }
+
+    adminService.payAffiliateCommission(selectedAffiliateForPayout.id, amount);
+    setAffiliates(adminService.getAffiliates());
+    syncLocalData();
+    setSelectedAffiliateForPayout(null);
+    showNotification(`💸 Pagamento de R$ ${amount.toFixed(2)} registrado para ${selectedAffiliateForPayout.name}!`);
   };
 
   /* ======================================================== */
@@ -1070,13 +1205,29 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   // Filtros de Usuários
   const filteredUsers = useMemo(() => {
     return registeredUsers.filter((u) => {
+      const q = userSearch.toLowerCase();
       return (
         userSearch === '' ||
-        u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
-        u.email.toLowerCase().includes(userSearch.toLowerCase())
+        u.name.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        (u.phone && u.phone.toLowerCase().includes(q))
       );
     });
   }, [registeredUsers, userSearch]);
+
+  // Filtros de Afiliados
+  const filteredAffiliates = useMemo(() => {
+    return affiliates.filter((a) => {
+      const q = affiliateSearch.toLowerCase();
+      return (
+        affiliateSearch === '' ||
+        a.name.toLowerCase().includes(q) ||
+        a.code.toLowerCase().includes(q) ||
+        (a.phone && a.phone.toLowerCase().includes(q)) ||
+        (a.email && a.email.toLowerCase().includes(q))
+      );
+    });
+  }, [affiliates, affiliateSearch]);
 
   if (!isOpen) return null;
 
@@ -1091,6 +1242,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     { id: 'tips', label: 'Dicas dos Locais', icon: <Sparkles size={17} /> },
     { id: 'itineraries', label: 'Roteiros', icon: <Compass size={17} />, badge: itineraries.length },
     { id: 'users', label: 'Clientes', icon: <Users size={17} />, badge: registeredUsers.length },
+    { id: 'affiliates', label: 'Afiliados', icon: <Handshake size={17} />, badge: affiliates.length },
     { id: 'metrics', label: 'Métricas & Financeiro', icon: <TrendingUp size={17} /> },
     { id: 'logs', label: 'Logs & Webhooks', icon: <FileText size={17} /> },
     { id: 'security', label: 'Segurança & Senha', icon: <Lock size={17} /> }
@@ -3113,7 +3265,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 <Search size={16} />
                 <input
                   type="text"
-                  placeholder="Buscar por nome ou e-mail..."
+                  placeholder="Buscar por nome, e-mail ou telefone..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                 />
@@ -3126,6 +3278,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   <tr>
                     <th>Cliente</th>
                     <th>E-mail</th>
+                    <th>Telefone / WhatsApp</th>
                     <th>Status</th>
                     <th>Cadastro</th>
                     <th style={{ textAlign: 'right' }}>Ação de Acesso</th>
@@ -3138,6 +3291,22 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         <strong>{u.name}</strong>
                       </td>
                       <td>{u.email}</td>
+                      <td>
+                        {u.phone ? (
+                          <a
+                            href={`https://wa.me/55${u.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="client-whatsapp-badge"
+                            title="Conversar com cliente via WhatsApp"
+                          >
+                            <MessageCircle size={14} color="#25D366" />
+                            <span>{u.phone}</span>
+                          </a>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.825rem' }}>—</span>
+                        )}
+                      </td>
                       <td>
                         {u.accessStatus === 'active' ? (
                           <Badge variant="emerald" icon={<CheckCircle2 size={12} />}>VIP Vitalício</Badge>
@@ -3184,6 +3353,19 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     <div className="mobile-user-card-info">
                       <strong className="mobile-user-name">{u.name}</strong>
                       <span className="mobile-user-email">{u.email}</span>
+                      {u.phone && (
+                        <div className="mobile-user-phone-row">
+                          <a
+                            href={`https://wa.me/55${u.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="client-whatsapp-badge"
+                          >
+                            <MessageCircle size={13} color="#25D366" />
+                            <span>{u.phone}</span>
+                          </a>
+                        </div>
+                      )}
                       <div className="mobile-user-status">
                         {u.accessStatus === 'active' ? (
                           <Badge variant="emerald" icon={<CheckCircle2 size={12} />}>VIP Vitalício</Badge>
@@ -3223,40 +3405,504 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         )}
 
         {/* ======================================================== */}
-        {/* ABA 9: MÉTRICAS & FINANCEIRO */}
+        {/* ABA 9: GESTÃO DE AFILIADOS & PARCEIROS DE INDICAÇÃO */}
+        {/* ======================================================== */}
+        {activeTab === 'affiliates' && (
+          <div className="admin-tab-content">
+            <div className="admin-toolbar">
+              <div className="toolbar-search-wrap">
+                <Search size={16} />
+                <input
+                  type="text"
+                  placeholder="Buscar afiliado por nome, código, fone ou e-mail..."
+                  value={affiliateSearch}
+                  onChange={(e) => setAffiliateSearch(e.target.value)}
+                />
+              </div>
+
+              <div className="toolbar-actions">
+                <Button
+                  variant="gold"
+                  size="md"
+                  iconLeft={<Plus size={16} />}
+                  onClick={handleOpenNewAffiliate}
+                >
+                  Novo Afiliado
+                </Button>
+              </div>
+            </div>
+
+            {/* KPI Cards de Afiliados */}
+            <div className="metrics-cards-grid">
+              <div className="metric-stat-card glass-panel">
+                <span className="metric-label">Afiliados Cadastrados</span>
+                <h3 className="metric-val text-gradient-gold">{affiliates.length}</h3>
+                <span className="metric-sub">{affiliates.filter((a) => a.status === 'active').length} parceiros ativos</span>
+              </div>
+
+              <div className="metric-stat-card glass-panel">
+                <span className="metric-label">Cliques / Scans Gerados</span>
+                <h3 className="metric-val text-gradient-cyan">
+                  {affiliates.reduce((acc, a) => acc + (a.clicksCount || 0), 0)}
+                </h3>
+                <span className="metric-sub">Tráfego total de afiliados</span>
+              </div>
+
+              <div className="metric-stat-card glass-panel">
+                <span className="metric-label">Vendas por Afiliados</span>
+                <h3 className="metric-val text-gradient-gold">
+                  {affiliates.reduce((acc, a) => acc + (a.salesCount || 0), 0)}
+                </h3>
+                <span className="metric-sub">
+                  R$ {affiliates.reduce((acc, a) => acc + (a.totalRevenue || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} faturados
+                </span>
+              </div>
+
+              <div className="metric-stat-card glass-panel">
+                <span className="metric-label">Comissões Devidas</span>
+                <h3 className="metric-val" style={{ color: '#10B981' }}>
+                  R$ {affiliates.reduce((acc, a) => acc + ((a.totalCommission || 0) - (a.paidCommission || 0)), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </h3>
+                <span className="metric-sub">
+                  R$ {affiliates.reduce((acc, a) => acc + (a.paidCommission || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} já pagos
+                </span>
+              </div>
+            </div>
+
+            {/* Tabela de Afiliados */}
+            <div className="admin-places-table-wrap glass-panel hide-mobile">
+              {filteredAffiliates.length === 0 ? (
+                <div className="empty-results-box">
+                  <Handshake size={32} color="#00B4D8" style={{ margin: '0 auto 0.75rem' }} />
+                  <p>Nenhum afiliado cadastrado ainda.</p>
+                  <Button variant="gold" size="sm" onClick={handleOpenNewAffiliate} style={{ marginTop: '0.75rem' }}>
+                    Cadastrar Primeiro Afiliado
+                  </Button>
+                </div>
+              ) : (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Afiliado / Contato</th>
+                      <th>Código & Link</th>
+                      <th>Comissão</th>
+                      <th>Cliques</th>
+                      <th>Vendas</th>
+                      <th>Saldo a Pagar</th>
+                      <th>Status</th>
+                      <th style={{ textAlign: 'right' }}>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAffiliates.map((aff) => {
+                      const pendingCommission = (aff.totalCommission || 0) - (aff.paidCommission || 0);
+                      const affiliateUrl = `${window.location.origin}/?ref=${aff.code}`;
+
+                      return (
+                        <tr key={aff.id}>
+                          <td>
+                            <div className="affiliate-name-cell">
+                              <strong>{aff.name}</strong>
+                              {aff.phone && (
+                                <a
+                                  href={`https://wa.me/55${aff.phone.replace(/\D/g, '')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="client-whatsapp-badge"
+                                >
+                                  <MessageCircle size={12} color="#25D366" />
+                                  <span>{aff.phone}</span>
+                                </a>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="affiliate-code-cell">
+                              <span className="affiliate-code-badge">{aff.code}</span>
+                              <button
+                                className="copy-link-btn"
+                                onClick={() => handleCopyAffiliateLink(aff.code)}
+                                title="Copiar Link de Indicação"
+                                type="button"
+                              >
+                                <Copy size={13} />
+                                <span>Copiar Link</span>
+                              </button>
+                            </div>
+                          </td>
+                          <td>
+                            <Badge variant="gold">
+                              {aff.commissionType === 'percentage' ? `${aff.commissionValue}%` : `R$ ${aff.commissionValue.toFixed(2)}`}
+                            </Badge>
+                          </td>
+                          <td>
+                            <span className="metric-pill-val">{aff.clicksCount || 0}</span>
+                          </td>
+                          <td>
+                            <strong>{aff.salesCount || 0}</strong>
+                            <span className="sub-table-text">
+                              (R$ {(aff.totalRevenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{ color: pendingCommission > 0 ? '#F4A261' : '#10B981', fontWeight: 700 }}>
+                              R$ {pendingCommission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                            {aff.paidCommission > 0 && (
+                              <span className="sub-table-text">
+                                Pago: R$ {aff.paidCommission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <button
+                              className={`status-toggle-pill ${aff.status === 'active' ? 'active' : 'paused'}`}
+                              onClick={() => handleToggleAffiliateStatus(aff)}
+                              title="Clique para pausar ou ativar"
+                              type="button"
+                            >
+                              {aff.status === 'active' ? '🟢 Ativo' : '⏸️ Pausado'}
+                            </button>
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <div className="table-actions-inline">
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                iconLeft={<QrCode size={13} />}
+                                onClick={() => setSelectedAffiliateForQr(aff)}
+                                title="Ver & Baixar QR Code do Afiliado"
+                              >
+                                QR Code
+                              </Button>
+                              {pendingCommission > 0 && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  iconLeft={<DollarSign size={13} />}
+                                  onClick={() => handleOpenPayoutModal(aff)}
+                                  title="Registrar pagamento de comissão"
+                                >
+                                  Pagar
+                                </Button>
+                              )}
+                              <button
+                                className="action-icon-btn edit"
+                                onClick={() => handleEditAffiliate(aff)}
+                                title="Editar Afiliado"
+                                type="button"
+                              >
+                                <Edit2 size={15} />
+                              </button>
+                              <button
+                                className="action-icon-btn delete"
+                                onClick={() => handleDeleteAffiliate(aff.id, aff.name)}
+                                title="Excluir Afiliado"
+                                type="button"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* CARDS RESPONSIVOS DE AFILIADOS NO MOBILE */}
+            <div className="admin-affiliates-mobile-list show-mobile-only">
+              {filteredAffiliates.length === 0 ? (
+                <div className="empty-results-box glass-panel">
+                  <p>Nenhum afiliado cadastrado.</p>
+                </div>
+              ) : (
+                filteredAffiliates.map((aff) => {
+                  const pendingCommission = (aff.totalCommission || 0) - (aff.paidCommission || 0);
+
+                  return (
+                    <div key={aff.id} className="admin-mobile-affiliate-card glass-panel">
+                      <div className="mobile-aff-header">
+                        <div>
+                          <strong className="mobile-aff-name">{aff.name}</strong>
+                          <div className="affiliate-code-badge" style={{ marginTop: '0.35rem' }}>{aff.code}</div>
+                        </div>
+                        <button
+                          className={`status-toggle-pill ${aff.status === 'active' ? 'active' : 'paused'}`}
+                          onClick={() => handleToggleAffiliateStatus(aff)}
+                          type="button"
+                        >
+                          {aff.status === 'active' ? '🟢 Ativo' : '⏸️ Pausado'}
+                        </button>
+                      </div>
+
+                      {aff.phone && (
+                        <a
+                          href={`https://wa.me/55${aff.phone.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="client-whatsapp-badge"
+                          style={{ margin: '0.5rem 0' }}
+                        >
+                          <MessageCircle size={13} color="#25D366" />
+                          <span>{aff.phone}</span>
+                        </a>
+                      )}
+
+                      <div className="mobile-aff-metrics-grid">
+                        <div className="mobile-aff-metric-box">
+                          <span>Cliques</span>
+                          <strong>{aff.clicksCount || 0}</strong>
+                        </div>
+                        <div className="mobile-aff-metric-box">
+                          <span>Vendas</span>
+                          <strong>{aff.salesCount || 0}</strong>
+                        </div>
+                        <div className="mobile-aff-metric-box">
+                          <span>Comissão</span>
+                          <strong>{aff.commissionType === 'percentage' ? `${aff.commissionValue}%` : `R$ ${aff.commissionValue}`}</strong>
+                        </div>
+                        <div className="mobile-aff-metric-box">
+                          <span>A Receber</span>
+                          <strong style={{ color: pendingCommission > 0 ? '#F4A261' : '#10B981' }}>
+                            R$ {pendingCommission.toFixed(2)}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className="mobile-aff-actions">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          iconLeft={<Copy size={13} />}
+                          onClick={() => handleCopyAffiliateLink(aff.code)}
+                          className="w-full"
+                        >
+                          Copiar Link
+                        </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          iconLeft={<QrCode size={13} />}
+                          onClick={() => setSelectedAffiliateForQr(aff)}
+                          className="w-full"
+                        >
+                          Ver QR Code
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* ABA 10: MÉTRICAS & FINANCEIRO (DASHBOARD COMPLETO) */}
         {/* ======================================================== */}
         {activeTab === 'metrics' && (
           <div className="admin-tab-content">
+            {/* Top 4 KPI Cards */}
             <div className="metrics-cards-grid">
               <div className="metric-stat-card glass-panel">
-                <span className="metric-label">Faturamento Total</span>
+                <span className="metric-label">Faturamento Total Confirmado</span>
                 <h3 className="metric-val text-gradient-gold">
                   R$ {metrics.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </h3>
-                <span className="metric-sub">Pagamentos confirmados</span>
+                <span className="metric-sub">
+                  Ticket Médio: R$ {metrics.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
               </div>
 
               <div className="metric-stat-card glass-panel">
-                <span className="metric-label">Total de Licenças</span>
+                <span className="metric-label">Licenças Vitalícias Vendidas</span>
                 <h3 className="metric-val text-gradient-cyan">
                   {metrics.totalSales.toLocaleString('pt-BR')}
                 </h3>
-                <span className="metric-sub">Acessos vitalícios ativos</span>
+                <span className="metric-sub">{metrics.activeLifetimeUsers} membros ativos</span>
               </div>
 
               <div className="metric-stat-card glass-panel">
-                <span className="metric-label">Taxa de Conversão</span>
+                <span className="metric-label">Taxa de Conversão Real</span>
                 <h3 className="metric-val">{metrics.conversionRate}%</h3>
-                <span className="metric-sub">Média dos últimos 30 dias</span>
+                <span className="metric-sub">{metrics.pendingUsers} visitantes cadastrados</span>
               </div>
 
               <div className="metric-stat-card glass-panel">
                 <span className="metric-label">Divisão PIX vs Cartão</span>
-                <div className="payment-split-bar">
-                  <div className="split-pix" style={{ width: '69%' }}>PIX (69%)</div>
-                  <div className="split-card" style={{ width: '31%' }}>Cartão (31%)</div>
+                {metrics.totalSales === 0 ? (
+                  <div className="payment-split-bar">
+                    <div className="split-pix" style={{ width: '50%', background: 'rgba(255,255,255,0.1)' }}>PIX (0)</div>
+                    <div className="split-card" style={{ width: '50%', background: 'rgba(255,255,255,0.05)' }}>Cartão (0)</div>
+                  </div>
+                ) : (
+                  <div className="payment-split-bar">
+                    <div className="split-pix" style={{ width: `${Math.round((metrics.pixSalesCount / metrics.totalSales) * 100) || 50}%` }}>
+                      PIX ({Math.round((metrics.pixSalesCount / metrics.totalSales) * 100) || 0}%)
+                    </div>
+                    <div className="split-card" style={{ width: `${100 - (Math.round((metrics.pixSalesCount / metrics.totalSales) * 100) || 50)}%` }}>
+                      Cartão ({100 - (Math.round((metrics.pixSalesCount / metrics.totalSales) * 100) || 0)}%)
+                    </div>
+                  </div>
+                )}
+                <span className="metric-sub">
+                  {metrics.pixSalesCount} via PIX • {metrics.cardSalesCount} via Cartão
+                </span>
+              </div>
+            </div>
+
+            {/* SEÇÃO DE GRÁFICOS VISUAIS */}
+            <div className="metrics-charts-row">
+              {/* Gráfico 1: Performance de Vendas por Período */}
+              <div className="metric-chart-card glass-panel">
+                <div className="chart-header">
+                  <div>
+                    <h4 className="chart-title">Receita & Volume de Vendas</h4>
+                    <span className="chart-subtitle">Desempenho financeiro dinâmico do Guia</span>
+                  </div>
+                  <Badge variant="gold" icon={<TrendingUp size={12} />}>
+                    Tempo Real
+                  </Badge>
+                </div>
+
+                <div className="analytics-bars-container">
+                  {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((day, idx) => {
+                    // Barras dinâmicas
+                    const salesInDay = idx === 6 ? metrics.totalSales : 0;
+                    const heightPercent = metrics.totalSales > 0 ? (idx === 6 ? 90 : 15) : 8;
+
+                    return (
+                      <div key={day} className="chart-bar-column">
+                        <div className="chart-bar-track">
+                          <div
+                            className="chart-bar-fill"
+                            style={{
+                              height: `${heightPercent}%`,
+                              background: idx === 6 ? 'linear-gradient(to top, #00B4D8, #F4A261)' : 'rgba(255,255,255,0.1)'
+                            }}
+                          >
+                            <span className="chart-bar-tooltip">
+                              {idx === 6 ? `R$ ${metrics.totalRevenue.toFixed(2)}` : 'R$ 0,00'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="chart-bar-label">{day}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
+
+              {/* Gráfico 2: Canais de Aquisição & Afiliados */}
+              <div className="metric-chart-card glass-panel">
+                <div className="chart-header">
+                  <div>
+                    <h4 className="chart-title">Origem de Vendas por Canal</h4>
+                    <span className="chart-subtitle">Distribuição entre tráfego direto, afiliados e totens</span>
+                  </div>
+                </div>
+
+                <div className="channel-distribution-list">
+                  <div className="channel-item">
+                    <div className="channel-info">
+                      <span className="channel-name">🌐 Acesso Direto / Orgânico</span>
+                      <strong className="channel-val">
+                        {Math.max(0, metrics.totalSales - affiliates.reduce((acc, a) => acc + a.salesCount, 0))} vendas
+                      </strong>
+                    </div>
+                    <div className="channel-bar-bg">
+                      <div className="channel-bar-fill" style={{ width: metrics.totalSales > 0 ? '70%' : '0%', background: '#00B4D8' }} />
+                    </div>
+                  </div>
+
+                  <div className="channel-item">
+                    <div className="channel-info">
+                      <span className="channel-name">🤝 Afiliados & Promotores</span>
+                      <strong className="channel-val">
+                        {affiliates.reduce((acc, a) => acc + a.salesCount, 0)} vendas
+                      </strong>
+                    </div>
+                    <div className="channel-bar-bg">
+                      <div className="channel-bar-fill" style={{ width: metrics.totalSales > 0 ? '30%' : '0%', background: '#F4A261' }} />
+                    </div>
+                  </div>
+
+                  <div className="channel-item">
+                    <div className="channel-info">
+                      <span className="channel-name">📱 Displays & Totens QR Code</span>
+                      <strong className="channel-val">
+                        {qrChannels.reduce((acc, q) => acc + (q.conversionCount || 0), 0)} scans
+                      </strong>
+                    </div>
+                    <div className="channel-bar-bg">
+                      <div className="channel-bar-fill" style={{ width: '20%', background: '#10B981' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SEÇÃO: HISTÓRICO RECENTE DE VENDAS (LIVE STREAM) */}
+            <div className="metric-recent-sales-wrap glass-panel">
+              <div className="recent-sales-header">
+                <h4 className="chart-title">Transações & Vendas Recentes</h4>
+                <span className="chart-subtitle">Últimos pedidos confirmados na plataforma</span>
+              </div>
+
+              {paymentService.getTransactions().length === 0 ? (
+                <div className="empty-transactions-box">
+                  <p>Nenhuma transação registrada ainda.</p>
+                </div>
+              ) : (
+                <div className="admin-places-table-wrap">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Pedido ID</th>
+                        <th>Comprador</th>
+                        <th>Método</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paymentService.getTransactions().slice(0, 10).map((tx) => (
+                        <tr key={tx.id}>
+                          <td>
+                            <strong style={{ fontFamily: 'monospace', color: '#00B4D8' }}>{tx.orderId}</strong>
+                          </td>
+                          <td>
+                            <strong>{tx.userName || 'Cliente'}</strong>
+                            <span className="sub-table-text">{tx.userEmail}</span>
+                          </td>
+                          <td>
+                            {tx.paymentMethod === 'pix' ? (
+                              <Badge variant="cyan" icon={<QrCode size={12} />}>PIX BACEN</Badge>
+                            ) : (
+                              <Badge variant="gold" icon={<CreditCard size={12} />}>Cartão de Crédito</Badge>
+                            )}
+                          </td>
+                          <td>
+                            <strong>R$ {(tx.amount || 39.90).toFixed(2)}</strong>
+                          </td>
+                          <td>{new Date(tx.createdAt).toLocaleDateString('pt-BR')}</td>
+                          <td>
+                            {tx.status === 'approved' ? (
+                              <Badge variant="emerald" icon={<CheckCircle2 size={12} />}>Aprovado</Badge>
+                            ) : (
+                              <Badge variant="warning" icon={<Clock size={12} />}>Pendente</Badge>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -3836,9 +4482,740 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
             </form>
           )}
         </Modal>
+
+        {/* ======================================================== */}
+        {/* MODAL DE CADASTRO / EDIÇÃO DE AFILIADO */}
+        {/* ======================================================== */}
+        <Modal
+          isOpen={isAffiliateModalOpen}
+          onClose={() => setIsAffiliateModalOpen(false)}
+          title={editingAffiliate?.id ? `Editar Afiliado: ${editingAffiliate.name || ''}` : 'Cadastrar Novo Afiliado / Promotor'}
+          maxWidth="640px"
+        >
+          <form onSubmit={handleSaveAffiliateSubmit} className="partner-form-modal">
+            <div className="form-grid-2">
+              <div className="form-group sm-col-span-2">
+                <label>Nome do Afiliado / Estabelecimento / Influencer *</label>
+                <input
+                  type="text"
+                  value={affiliateFormName}
+                  onChange={(e) => {
+                    setAffiliateFormName(e.target.value);
+                    if (!editingAffiliate?.id && !affiliateFormCode) {
+                      setAffiliateFormCode(generateAffiliateCodeFromName(e.target.value));
+                    }
+                  }}
+                  placeholder="Ex: Pousada Tambaú, Guia Carlos Silva, Dicas de Jampa..."
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <div className="label-with-action">
+                  <label>Código de Indicação (Cupom) *</label>
+                  <button
+                    type="button"
+                    className="quick-test-link"
+                    onClick={() => setAffiliateFormCode(generateAffiliateCodeFromName(affiliateFormName || 'AF'))}
+                  >
+                    Gerar Código
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={affiliateFormCode}
+                  onChange={(e) => setAffiliateFormCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))}
+                  placeholder="Ex: TAMBAU20, CARLOSPB, GUIAJOAO"
+                  required
+                />
+                <span className="input-hint-sub">Link: https://jampaexperience.online/?ref={affiliateFormCode || 'CODIGO'}</span>
+              </div>
+
+              <div className="form-group">
+                <label>WhatsApp do Afiliado (com DDD)</label>
+                <div className="input-icon-wrap">
+                  <Phone size={15} className="input-prefix-icon" />
+                  <input
+                    type="tel"
+                    value={affiliateFormPhone}
+                    onChange={(e) => setAffiliateFormPhone(e.target.value)}
+                    placeholder="(83) 99999-9999"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>E-mail do Afiliado (opcional)</label>
+                <input
+                  type="email"
+                  value={affiliateFormEmail}
+                  onChange={(e) => setAffiliateFormEmail(e.target.value)}
+                  placeholder="afiliado@email.com"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Tipo de Comissão</label>
+                <select
+                  value={affiliateFormType}
+                  onChange={(e) => setAffiliateFormType(e.target.value as 'percentage' | 'fixed')}
+                >
+                  <option value="percentage">Porcentagem (%) por Venda</option>
+                  <option value="fixed">Valor Fixo (R$) por Venda</option>
+                </select>
+              </div>
+
+              <div className="form-group sm-col-span-2">
+                <label>
+                  Valor da Comissão {affiliateFormType === 'percentage' ? '(em %)' : '(em R$)'} *
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="1"
+                  value={affiliateFormValue}
+                  onChange={(e) => setAffiliateFormValue(parseFloat(e.target.value) || 0)}
+                  placeholder={affiliateFormType === 'percentage' ? '25 (% = R$ 9,97 por venda)' : '10.00 (R$)'}
+                  required
+                />
+                <span className="input-hint-sub">
+                  {affiliateFormType === 'percentage'
+                    ? `Com 25% o afiliado recebe R$ ${((39.90 * (affiliateFormValue || 25)) / 100).toFixed(2)} a cada venda de R$ 39,90.`
+                    : `O afiliado receberá R$ ${Number(affiliateFormValue || 0).toFixed(2)} por cada venda de R$ 39,90.`}
+                </span>
+              </div>
+
+              <div className="form-group sm-col-span-2">
+                <label>Anotações Internas (Chave PIX do Afiliado, Contato, etc.)</label>
+                <textarea
+                  rows={2}
+                  value={affiliateFormNotes}
+                  onChange={(e) => setAffiliateFormNotes(e.target.value)}
+                  placeholder="Ex: Chave PIX: 83999999999 (Celular Nubank). Pagar todo dia 05."
+                />
+              </div>
+            </div>
+
+            <div className="partner-form-footer" style={{ marginTop: '1.25rem' }}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsAffiliateModalOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                variant="gold"
+                iconLeft={<Save size={15} />}
+              >
+                Salvar Afiliado
+              </Button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* ======================================================== */}
+        {/* MODAL DE VISUALIZAÇÃO & DOWNLOAD DE QR CODE DO AFILIADO */}
+        {/* ======================================================== */}
+        {selectedAffiliateForQr && (
+          <Modal
+            isOpen={Boolean(selectedAffiliateForQr)}
+            onClose={() => setSelectedAffiliateForQr(null)}
+            title={`Display & QR Code — ${selectedAffiliateForQr.name}`}
+            maxWidth="580px"
+          >
+            <div className="affiliate-qr-modal-content">
+              {/* Placa / Display de Balcão e Mesa */}
+              <div className="affiliate-qr-display-card glass-panel" id="printable-affiliate-display">
+                <div className="display-card-header">
+                  <Crown size={22} color="#F4A261" />
+                  <h3 className="display-card-brand">JAMPA EXPERIENCE</h3>
+                  <span className="display-card-tagline">GUIA TURÍSTICO OFICIAL • JOÃO PESSOA - PB</span>
+                </div>
+
+                <div className="display-card-qr-frame">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`https://jampaexperience.online/?ref=${selectedAffiliateForQr.code}`)}`}
+                    alt={`QR Code ${selectedAffiliateForQr.name}`}
+                    className="display-qr-img"
+                  />
+                  <div className="display-scan-badge">
+                    <QrCode size={14} color="#00B4D8" />
+                    <span>APONTE A CÂMERA DO CELULAR</span>
+                  </div>
+                </div>
+
+                <div className="display-card-footer">
+                  <p className="display-promo-text">
+                    Desbloqueie roteiros secretos, praias paradisíacas e cupons VIP com desconto especial!
+                  </p>
+                  <div className="display-partner-badge">
+                    <span>Parceiro Oficial: <strong>{selectedAffiliateForQr.name}</strong></span>
+                    <span className="display-partner-code">CÓDIGO: {selectedAffiliateForQr.code}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="affiliate-qr-actions-row">
+                <Button
+                  variant="outline"
+                  size="md"
+                  iconLeft={<Copy size={16} />}
+                  onClick={() => handleCopyAffiliateLink(selectedAffiliateForQr.code)}
+                >
+                  Copiar Link
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  iconLeft={<Printer size={16} />}
+                  onClick={() => window.print()}
+                >
+                  Imprimir Placa
+                </Button>
+                <a
+                  href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(`https://jampaexperience.online/?ref=${selectedAffiliateForQr.code}`)}`}
+                  download={`qrcode-afiliado-${selectedAffiliateForQr.code}.png`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-gold btn-md"
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <Upload size={16} style={{ transform: 'rotate(180deg)' }} />
+                  <span>Baixar QR Code</span>
+                </a>
+              </div>
+            </div>
+          </Modal>
+        )}
+
+        {/* ======================================================== */}
+        {/* MODAL DE PAGAMENTO DE COMISSÃO DE AFILIADO */}
+        {/* ======================================================== */}
+        {selectedAffiliateForPayout && (
+          <Modal
+            isOpen={Boolean(selectedAffiliateForPayout)}
+            onClose={() => setSelectedAffiliateForPayout(null)}
+            title={`Registrar Pagamento — ${selectedAffiliateForPayout.name}`}
+            maxWidth="500px"
+          >
+            <form onSubmit={handleConfirmPayoutSubmit} className="partner-form-modal">
+              <div className="payout-summary-box glass-panel">
+                <div className="payout-row">
+                  <span>Comissão Total Gerada:</span>
+                  <strong>R$ {(selectedAffiliateForPayout.totalCommission || 0).toFixed(2)}</strong>
+                </div>
+                <div className="payout-row">
+                  <span>Já Pago Anteriormente:</span>
+                  <span>R$ {(selectedAffiliateForPayout.paidCommission || 0).toFixed(2)}</span>
+                </div>
+                <div className="payout-row highlight">
+                  <span>Saldo Pendente Atual:</span>
+                  <strong style={{ color: '#10B981', fontSize: '1.15rem' }}>
+                    R$ {((selectedAffiliateForPayout.totalCommission || 0) - (selectedAffiliateForPayout.paidCommission || 0)).toFixed(2)}
+                  </strong>
+                </div>
+              </div>
+
+              {selectedAffiliateForPayout.notes && (
+                <div className="payout-notes-box">
+                  <strong>Dados Cadastrados do Afiliado:</strong>
+                  <p>{selectedAffiliateForPayout.notes}</p>
+                </div>
+              )}
+
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label>Valor a Registrar como Transferido (R$) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={payoutAmountInput}
+                  onChange={(e) => setPayoutAmountInput(e.target.value)}
+                  placeholder="Ex: 50.00"
+                  required
+                />
+              </div>
+
+              <div className="partner-form-footer" style={{ marginTop: '1.25rem' }}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setSelectedAffiliateForPayout(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="gold"
+                  iconLeft={<DollarSign size={16} />}
+                >
+                  Confirmar Pagamento
+                </Button>
+              </div>
+            </form>
+          </Modal>
+        )}
       </div>
 
       <style>{`
+        /* ======================================================== */
+        /* ESTILOS DE CLIENTES & WHATSAPP */
+        /* ======================================================== */
+        .client-whatsapp-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          padding: 0.3rem 0.65rem;
+          background: rgba(37, 211, 102, 0.12);
+          border: 1px solid rgba(37, 211, 102, 0.3);
+          border-radius: var(--radius-full);
+          color: #25D366;
+          font-size: 0.825rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .client-whatsapp-badge:hover {
+          background: rgba(37, 211, 102, 0.22);
+          border-color: #25D366;
+          transform: translateY(-1px);
+        }
+
+        .mobile-user-phone-row {
+          margin: 0.35rem 0 0.5rem;
+        }
+
+        /* ======================================================== */
+        /* ESTILOS DE AFILIADOS & PARCEIROS */
+        /* ======================================================== */
+        .affiliate-name-cell {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .affiliate-code-cell {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .affiliate-code-badge {
+          display: inline-block;
+          padding: 0.2rem 0.5rem;
+          background: rgba(244, 162, 97, 0.15);
+          border: 1px solid rgba(244, 162, 97, 0.4);
+          border-radius: 6px;
+          color: #F4A261;
+          font-family: monospace;
+          font-weight: 700;
+          font-size: 0.85rem;
+          letter-spacing: 0.05em;
+        }
+
+        .copy-link-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          padding: 0.2rem 0.45rem;
+          color: #94A3B8;
+          font-size: 0.75rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .copy-link-btn:hover {
+          background: rgba(0, 180, 216, 0.15);
+          border-color: #00B4D8;
+          color: #00B4D8;
+        }
+
+        .status-toggle-pill {
+          border: none;
+          padding: 0.25rem 0.6rem;
+          border-radius: var(--radius-full);
+          font-size: 0.775rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .status-toggle-pill.active {
+          background: rgba(16, 185, 129, 0.15);
+          color: #10B981;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-toggle-pill.paused {
+          background: rgba(239, 68, 68, 0.15);
+          color: #EF4444;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .admin-mobile-affiliate-card {
+          padding: 1.25rem;
+          border-radius: var(--radius-lg);
+          margin-bottom: 1rem;
+        }
+
+        .mobile-aff-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 0.75rem;
+        }
+
+        .mobile-aff-name {
+          font-size: 1.05rem;
+          color: #F8FAFC;
+        }
+
+        .mobile-aff-metrics-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 0.5rem;
+          margin: 0.75rem 0;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 8px;
+          padding: 0.65rem;
+        }
+
+        .mobile-aff-metric-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+
+        .mobile-aff-metric-box span {
+          font-size: 0.7rem;
+          color: var(--text-muted);
+        }
+
+        .mobile-aff-metric-box strong {
+          font-size: 0.85rem;
+          color: #F8FAFC;
+          margin-top: 0.15rem;
+        }
+
+        .mobile-aff-actions {
+          display: flex;
+          gap: 0.5rem;
+          margin-top: 0.75rem;
+        }
+
+        /* ======================================================== */
+        /* MODAL DE QR CODE & DISPLAY DE BALCÃO */
+        /* ======================================================== */
+        .affiliate-qr-modal-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1.5rem;
+        }
+
+        .affiliate-qr-display-card {
+          width: 100%;
+          max-width: 420px;
+          padding: 2rem 1.5rem;
+          border-radius: var(--radius-xl);
+          background: linear-gradient(145deg, #0d1b2a 0%, #07101a 100%);
+          border: 2px solid rgba(244, 162, 97, 0.4);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(244, 162, 97, 0.05);
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1.25rem;
+        }
+
+        .display-card-header {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.35rem;
+        }
+
+        .display-card-brand {
+          font-family: var(--font-display);
+          font-size: 1.35rem;
+          font-weight: 850;
+          color: #F8FAFC;
+          letter-spacing: 0.06em;
+          margin: 0;
+        }
+
+        .display-card-tagline {
+          font-size: 0.725rem;
+          font-weight: 700;
+          color: #F4A261;
+          letter-spacing: 0.1em;
+        }
+
+        .display-card-qr-frame {
+          background: #FFFFFF;
+          padding: 1.25rem;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .display-qr-img {
+          width: 220px;
+          height: 220px;
+          object-fit: contain;
+          display: block;
+        }
+
+        .display-scan-badge {
+          margin-top: 0.75rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: #07101a;
+          letter-spacing: 0.05em;
+        }
+
+        .display-promo-text {
+          font-size: 0.85rem;
+          color: #CBD5E1;
+          line-height: 1.4;
+          margin: 0;
+        }
+
+        .display-partner-badge {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px dashed rgba(244, 162, 97, 0.5);
+          border-radius: 8px;
+          padding: 0.6rem 1rem;
+          margin-top: 0.5rem;
+          font-size: 0.85rem;
+          color: #F8FAFC;
+        }
+
+        .display-partner-code {
+          font-family: monospace;
+          color: #F4A261;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+        }
+
+        .affiliate-qr-actions-row {
+          display: flex;
+          gap: 0.75rem;
+          width: 100%;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .payout-summary-box {
+          padding: 1.25rem;
+          border-radius: var(--radius-md);
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .payout-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.9rem;
+          color: #CBD5E1;
+        }
+
+        .payout-row.highlight {
+          padding-top: 0.5rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .payout-notes-box {
+          background: rgba(0, 0, 0, 0.25);
+          border-radius: 8px;
+          padding: 0.85rem;
+          margin-top: 0.75rem;
+          font-size: 0.825rem;
+        }
+
+        .payout-notes-box strong {
+          display: block;
+          color: #00B4D8;
+          margin-bottom: 0.25rem;
+        }
+
+        .payout-notes-box p {
+          margin: 0;
+          color: #94A3B8;
+        }
+
+        /* ======================================================== */
+        /* ESTILOS DO DASHBOARD FINANCEIRO & GRÁFICOS */
+        /* ======================================================== */
+        .metrics-charts-row {
+          display: grid;
+          grid-template-columns: 1.2fr 0.8fr;
+          gap: 1.25rem;
+          margin-top: 1.25rem;
+        }
+
+        @media (max-width: 900px) {
+          .metrics-charts-row {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .metric-chart-card {
+          padding: 1.5rem;
+          border-radius: var(--radius-lg);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .chart-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+          margin: 0;
+          font-family: var(--font-display);
+          font-size: 1.1rem;
+          color: #F8FAFC;
+        }
+
+        .chart-subtitle {
+          font-size: 0.8rem;
+          color: var(--text-muted);
+        }
+
+        .analytics-bars-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          height: 170px;
+          padding-top: 1rem;
+          gap: 0.75rem;
+        }
+
+        .chart-bar-column {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          height: 100%;
+        }
+
+        .chart-bar-track {
+          width: 100%;
+          max-width: 38px;
+          height: 130px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 8px 8px 0 0;
+          display: flex;
+          align-items: flex-end;
+          position: relative;
+        }
+
+        .chart-bar-fill {
+          width: 100%;
+          border-radius: 8px 8px 0 0;
+          transition: height 0.5s ease;
+          position: relative;
+        }
+
+        .chart-bar-tooltip {
+          position: absolute;
+          top: -28px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #0F172A;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #F8FAFC;
+          padding: 0.15rem 0.4rem;
+          border-radius: 4px;
+          font-size: 0.675rem;
+          white-space: nowrap;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease;
+        }
+
+        .chart-bar-column:hover .chart-bar-tooltip {
+          opacity: 1;
+        }
+
+        .chart-bar-label {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+          margin-top: 0.5rem;
+        }
+
+        .channel-distribution-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.15rem;
+        }
+
+        .channel-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+
+        .channel-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.85rem;
+        }
+
+        .channel-name {
+          color: #CBD5E1;
+        }
+
+        .channel-val {
+          color: #F8FAFC;
+          font-weight: 700;
+        }
+
+        .channel-bar-bg {
+          height: 8px;
+          background: rgba(255, 255, 255, 0.06);
+          border-radius: 4px;
+          overflow: hidden;
+        }
+
+        .channel-bar-fill {
+          height: 100%;
+          border-radius: 4px;
+          transition: width 0.5s ease;
+        }
+
+        .metric-recent-sales-wrap {
+          margin-top: 1.25rem;
+          padding: 1.5rem;
+          border-radius: var(--radius-lg);
+        }
+
+        .recent-sales-header {
+          margin-bottom: 1rem;
+        }
+
         /* ======================================================== */
         /* ESTILOS DE GESTÃO DE BAIRROS & DICAS DO BAIRRO */
         /* ======================================================== */

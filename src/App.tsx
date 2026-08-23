@@ -32,13 +32,26 @@ import { PrivacyPolicyModal } from './components/legal/PrivacyPolicyModal';
 import { WhatsAppFloatingButton } from './components/common/WhatsAppFloatingButton';
 
 export function App() {
-  // Limpeza de qualquer tema claro prévio para garantir Modo Escuro Luxury Ocean
+  // Limpeza de qualquer tema claro prévio para garantir Modo Escuro Luxury Ocean e Rastreamento de Afiliados
   useEffect(() => {
     document.documentElement.removeAttribute('data-theme');
     document.body.removeAttribute('data-theme');
     try {
       localStorage.removeItem('jampa_theme');
     } catch {}
+
+    // Rastreamento de Indicação de Afiliados (?ref=... ou ?af=...)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get('ref') || urlParams.get('af') || urlParams.get('aff') || urlParams.get('src');
+      if (refCode) {
+        const cleanRef = refCode.trim().toUpperCase();
+        localStorage.setItem('jampa_affiliate_ref', cleanRef);
+        adminService.trackAffiliateClick(cleanRef);
+      }
+    } catch (e) {
+      console.warn('Erro ao rastrear código de afiliado:', e);
+    }
   }, []);
 
   // Estado do Usuário e Sessão
@@ -236,6 +249,23 @@ export function App() {
 
     setIsVipMode(true);
     localStorage.setItem('jampa_vip_mode', 'true');
+
+    // Atribuir comissão a afiliado se houver indicação salva
+    try {
+      const refCode = localStorage.getItem('jampa_affiliate_ref');
+      if (refCode) {
+        adminService.recordAffiliateSale(
+          refCode,
+          transaction.amount || 39.90,
+          transaction.userEmail,
+          transaction.userName,
+          transaction.paymentMethod
+        );
+      }
+    } catch (e) {
+      console.warn('Erro ao creditar afiliado:', e);
+    }
+
     showToast(`🎉 Pagamento aprovado (${transaction.orderId})! Seu Acesso Vitalício está liberado.`);
   };
 

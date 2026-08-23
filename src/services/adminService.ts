@@ -2,6 +2,7 @@ import { AdminMetrics, SystemLog } from '../types/admin';
 import { Place, CategoryInfo, SecretTip, CategoryId, PlaceImage, PartnerTrackingEvent, Partner, Modality, Topic, Neighborhood } from '../types/place';
 import { Itinerary } from '../types/itinerary';
 import { User } from '../types/user';
+import { Affiliate, AffiliateSale } from '../types/affiliate';
 import { CATEGORIES as INITIAL_CATEGORIES } from '../data/categories';
 import { MOCK_PLACES } from '../data/mockPlaces';
 import { MOCK_ITINERARIES } from '../data/mockItineraries';
@@ -19,6 +20,8 @@ const STORAGE_PARTNERS_KEY = 'jampa_admin_partners';
 const STORAGE_ITINERARIES_KEY = 'jampa_admin_itineraries';
 const STORAGE_ADMIN_LOGS_KEY = 'jampa_admin_system_logs';
 const STORAGE_PARTNER_CLICKS_KEY = 'jampa_partner_clicks_metrics';
+const STORAGE_AFFILIATES_KEY = 'jampa_admin_affiliates_v1';
+const STORAGE_AFFILIATE_SALES_KEY = 'jampa_admin_affiliate_sales_v1';
 
 export const INITIAL_NEIGHBORHOODS: Neighborhood[] = [
   {
@@ -369,29 +372,204 @@ class AdminService {
     const lifetimeUsersCount = users.filter((u: User) => u.accessStatus === 'active').length;
     const pendingUsersCount = users.filter((u: User) => u.accessStatus !== 'active').length;
 
-    const baseSales = 1420;
-    const baseRevenue = baseSales * 39.90;
-    const basePix = 980;
-    const baseCard = 440;
+    const approvedTransactions = transactions.filter((t) => t.status === 'approved');
+    const totalSales = approvedTransactions.length > 0 ? approvedTransactions.length : lifetimeUsersCount;
+    const totalRevenue = approvedTransactions.length > 0 
+      ? approvedTransactions.reduce((acc, t) => acc + (t.amount || 39.90), 0)
+      : (lifetimeUsersCount * 39.90);
+    const pixSalesCount = approvedTransactions.filter((t) => t.paymentMethod === 'pix').length;
+    const cardSalesCount = approvedTransactions.filter((t) => t.paymentMethod === 'credit_card').length;
 
-    const actualNewSales = transactions.filter((t) => t.status === 'approved').length;
-    const actualNewPix = transactions.filter((t) => t.status === 'approved' && t.paymentMethod === 'pix').length;
-    const actualNewCard = transactions.filter((t) => t.status === 'approved' && t.paymentMethod === 'credit_card').length;
-
-    const totalSales = baseSales + actualNewSales;
-    const totalRevenue = baseRevenue + (actualNewSales * 39.90);
+    const totalUsers = users.length;
+    const conversionRate = totalUsers > 0 ? Number(((lifetimeUsersCount / totalUsers) * 100).toFixed(1)) : 0;
 
     return {
       totalRevenue,
       totalSales,
-      conversionRate: 16.4,
-      averageTicket: 39.90,
-      pixSalesCount: basePix + actualNewPix,
-      cardSalesCount: baseCard + actualNewCard,
-      activeLifetimeUsers: lifetimeUsersCount + 890,
+      conversionRate,
+      averageTicket: totalSales > 0 ? Number((totalRevenue / totalSales).toFixed(2)) : 39.90,
+      pixSalesCount,
+      cardSalesCount,
+      activeLifetimeUsers: lifetimeUsersCount,
       pendingUsers: pendingUsersCount,
-      refundsCount: 0
+      refundsCount: transactions.filter((t) => t.status === 'refunded').length
     };
+  }
+
+  /* ======================================================== */
+  /* GESTÃO DE AFILIADOS & PARCEIROS DE VENDAS */
+  /* ======================================================== */
+  public getAffiliates(): Affiliate[] {
+    const data = localStorage.getItem(STORAGE_AFFILIATES_KEY);
+    if (!data) {
+      return [];
+    }
+    try {
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  private saveAffiliatesList(list: Affiliate[]): void {
+    safeSetItem(STORAGE_AFFILIATES_KEY, JSON.stringify(list));
+  }
+
+  public saveAffiliate(aff: Partial<Affiliate>): Affiliate {
+    const list = this.getAffiliates();
+    const cleanCode = (aff.code || `AF${Math.floor(1000 + Math.random() * 9000)}`).toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+
+    const existingIndex = aff.id ? list.findIndex((a) => a.id === aff.id) : -1;
+
+    let saved: Affiliate;
+    if (existingIndex >= 0) {
+      saved = {
+        ...list[existingIndex],
+        ...aff,
+        code: cleanCode
+      } as Affiliate;
+      list[existingIndex] = saved;
+      this.addLog({
+        type: 'place_updated',
+        title: `Afiliado Atualizado: ${saved.name}`,
+        details: `Código: ${saved.code} | Comissão: ${saved.commissionValue}${saved.commissionType === 'percentage' ? '%' : ' R$'}`
+      });
+    } else {
+      saved = {
+        id: 'aff-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        name: aff.name || 'Novo Afiliado',
+        code: cleanCode,
+        phone: aff.phone || '',
+        email: aff.email || '',
+        commissionType: aff.commissionType || 'percentage',
+        commissionValue: aff.commissionValue ?? 25,
+        clicksCount: 0,
+        salesCount: 0,
+        totalRevenue: 0,
+        totalCommission: 0,
+        paidCommission: 0,
+        status: 'active',
+        createdAt: new Date().toLocaleDateString('pt-BR'),
+        notes: aff.notes || ''
+      };
+      list.unshift(saved);
+      this.addLog({
+        type: 'place_created',
+        title: `Novo Afiliado Criado: ${saved.name}`,
+        details: `Código gerado: ${saved.code} | Link: https://jampaexperience.online/?ref=${saved.code}`
+      });
+    }
+
+    this.saveAffiliatesList(list);
+    return saved;
+  }
+
+  public deleteAffiliate(id: string): void {
+    const list = this.getAffiliates();
+    const target = list.find((a) => a.id === id);
+    const updated = list.filter((a) => a.id !== id);
+    this.saveAffiliatesList(updated);
+    if (target) {
+      this.addLog({
+        type: 'place_updated',
+        title: `Afiliado Excluído: ${target.name}`,
+        details: `Código ${target.code} removido.`
+      });
+    }
+  }
+
+  public getAffiliateByCode(code: string): Affiliate | undefined {
+    const clean = code.trim().toUpperCase();
+    return this.getAffiliates().find((a) => a.code.toUpperCase() === clean);
+  }
+
+  public trackAffiliateClick(code: string): void {
+    const list = this.getAffiliates();
+    const target = list.find((a) => a.code.toUpperCase() === code.trim().toUpperCase());
+    if (target && target.status === 'active') {
+      target.clicksCount += 1;
+      this.saveAffiliatesList(list);
+    }
+  }
+
+  public recordAffiliateSale(
+    code: string,
+    orderAmount: number = 39.90,
+    buyerEmail?: string,
+    buyerName?: string,
+    paymentMethod: 'pix' | 'credit_card' = 'pix'
+  ): AffiliateSale | null {
+    const list = this.getAffiliates();
+    const target = list.find((a) => a.code.toUpperCase() === code.trim().toUpperCase());
+    if (!target) return null;
+
+    const commission = target.commissionType === 'percentage'
+      ? Number(((orderAmount * target.commissionValue) / 100).toFixed(2))
+      : target.commissionValue;
+
+    target.salesCount += 1;
+    target.totalRevenue = Number((target.totalRevenue + orderAmount).toFixed(2));
+    target.totalCommission = Number((target.totalCommission + commission).toFixed(2));
+    this.saveAffiliatesList(list);
+
+    const sale: AffiliateSale = {
+      id: 'asale-' + Date.now(),
+      affiliateId: target.id,
+      affiliateCode: target.code,
+      affiliateName: target.name,
+      orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
+      orderAmount,
+      commissionAmount: commission,
+      buyerEmail,
+      buyerName,
+      createdAt: new Date().toLocaleDateString('pt-BR'),
+      paymentMethod
+    };
+
+    const salesData = localStorage.getItem(STORAGE_AFFILIATE_SALES_KEY);
+    const salesList: AffiliateSale[] = salesData ? JSON.parse(salesData) : [];
+    salesList.unshift(sale);
+    safeSetItem(STORAGE_AFFILIATE_SALES_KEY, JSON.stringify(salesList));
+
+    this.addLog({
+      type: 'payment_approved',
+      title: `Venda via Afiliado: ${target.name} (${target.code})`,
+      details: `Valor: R$ ${orderAmount.toFixed(2)} | Comissão gerada: R$ ${commission.toFixed(2)}`
+    });
+
+    return sale;
+  }
+
+  public payAffiliateCommission(affiliateId: string, amountToPay?: number): void {
+    const list = this.getAffiliates();
+    const target = list.find((a) => a.id === affiliateId);
+    if (!target) return;
+
+    const pending = target.totalCommission - target.paidCommission;
+    const amount = amountToPay !== undefined ? amountToPay : pending;
+
+    target.paidCommission = Number((target.paidCommission + amount).toFixed(2));
+    this.saveAffiliatesList(list);
+
+    this.addLog({
+      type: 'user_granted',
+      title: `Comissão Paga ao Afiliado: ${target.name}`,
+      details: `Valor transferido: R$ ${amount.toFixed(2)} | Total pago acumulado: R$ ${target.paidCommission.toFixed(2)}`
+    });
+  }
+
+  public getAffiliateSales(affiliateId?: string): AffiliateSale[] {
+    const data = localStorage.getItem(STORAGE_AFFILIATE_SALES_KEY);
+    if (!data) return [];
+    try {
+      const all: AffiliateSale[] = JSON.parse(data);
+      if (affiliateId) {
+        return all.filter((s) => s.affiliateId === affiliateId);
+      }
+      return all;
+    } catch {
+      return [];
+    }
   }
 
   /* ======================================================== */
