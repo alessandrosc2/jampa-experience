@@ -9,6 +9,7 @@ import {
   Check,
   Lock,
   ArrowRight,
+  ArrowLeft,
   Infinity,
   Clock,
   RefreshCw,
@@ -70,6 +71,13 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
       setCardHolder(currentUser.name);
     }
   }, [currentUser]);
+
+  // Ao fechar o modal, se não foi concluído, reseta para a tela inicial de escolha de métodos
+  useEffect(() => {
+    if (!isOpen && step !== 'success') {
+      setStep('checkout');
+    }
+  }, [isOpen, step]);
 
   // Contador regressivo do PIX
   useEffect(() => {
@@ -525,6 +533,33 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
                 JÁ REALIZEI O PAGAMENTO PIX (LIBERAR AGORA)
               </Button>
             </div>
+
+            {/* BOTÕES PARA TROCAR DE FORMA DE PAGAMENTO OU VOLTAR */}
+            <div className="pix-switch-method-box">
+              <button
+                type="button"
+                className="switch-to-card-btn glass-panel"
+                onClick={() => {
+                  setStep('checkout');
+                  setMethod('credit_card');
+                }}
+              >
+                <div className="switch-card-left">
+                  <CreditCard size={18} color="#00B4D8" />
+                  <span>Mudei de ideia: <strong>Pagar com Cartão (Stripe até 6x)</strong></span>
+                </div>
+                <ArrowRight size={16} color="#00B4D8" />
+              </button>
+
+              <button
+                type="button"
+                className="back-to-methods-link"
+                onClick={() => setStep('checkout')}
+              >
+                <ArrowLeft size={14} />
+                <span>Voltar e escolher outro meio de pagamento</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -972,6 +1007,63 @@ export const FullCheckoutModal: React.FC<FullCheckoutModalProps> = ({
         .pix-action-text p {
           font-size: 0.75rem;
           color: #94A3B8;
+        }
+
+        /* TROCA DE MEIO DE PAGAMENTO */
+        .pix-switch-method-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.75rem;
+          margin-top: 0.5rem;
+          width: 100%;
+        }
+
+        .switch-to-card-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.85rem 1.1rem;
+          background: rgba(0, 180, 216, 0.08);
+          border: 1px solid rgba(0, 180, 216, 0.3);
+          border-radius: var(--radius-md);
+          color: #F8FAFC;
+          cursor: pointer;
+          transition: all var(--transition-fast);
+          font-size: 0.8125rem;
+        }
+
+        .switch-to-card-btn:hover {
+          background: rgba(0, 180, 216, 0.18);
+          border-color: #00B4D8;
+          transform: translateY(-1px);
+        }
+
+        .switch-card-left {
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          text-align: left;
+        }
+
+        .back-to-methods-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: transparent;
+          border: none;
+          padding: 0.4rem 0.6rem;
+          color: #94A3B8;
+          font-size: 0.75rem;
+          cursor: pointer;
+          transition: color var(--transition-fast);
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .back-to-methods-link:hover {
+          color: #38BDF8;
         }
 
         .checkout-trust-footer {

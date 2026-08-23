@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   QrCode,
   CreditCard,
@@ -63,6 +63,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     onClose();
     setStep('form');
   };
+
+  useEffect(() => {
+    if (!isOpen && step !== 'success') {
+      setStep('form');
+    }
+  }, [isOpen, step]);
 
   return (
     <Modal
