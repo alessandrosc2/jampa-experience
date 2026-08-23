@@ -96,12 +96,26 @@ export const Footer: React.FC<FooterProps> = ({ isVipMode = false, onOpenPrivacy
               )}
             </div>
 
-            <p className="footer-support-note">
-              Suporte oficial: <br />
-              <a href="mailto:jampaexperience@gmail.com" className="support-email">
-                jampaexperience@gmail.com
-              </a>
-            </p>
+            <div className="footer-support-contacts">
+              <div className="footer-support-note">
+                <span className="support-label">WhatsApp Oficial:</span>
+                <a
+                  href="https://wa.me/5583993595124?text=Ol%C3%A1!%20Gostaria%20de%20tirar%20d%C3%BAvidas%20sobre%20o%20Jampa%20Experience."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="support-link whatsapp"
+                  title="Falar no WhatsApp (83) 99359-5124"
+                >
+                  (83) 99359-5124
+                </a>
+              </div>
+              <div className="footer-support-note">
+                <span className="support-label">E-mail:</span>
+                <a href="mailto:jampaexperience@gmail.com" className="support-link email">
+                  jampaexperience@gmail.com
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -283,15 +297,51 @@ export const Footer: React.FC<FooterProps> = ({ isVipMode = false, onOpenPrivacy
           color: #94A3B8;
         }
 
+        .footer-support-contacts {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
         .footer-support-note {
+          display: flex;
+          flex-direction: column;
+          gap: 0.15rem;
           font-size: 0.75rem;
-          color: #64748B;
           line-height: 1.4;
         }
 
-        .support-email {
-          color: #00B4D8;
+        .support-label {
+          font-size: 0.6875rem;
+          color: #94A3B8;
           font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .support-link {
+          font-size: 0.8125rem;
+          font-weight: 700;
+          text-decoration: none;
+          transition: color var(--transition-fast);
+        }
+
+        .support-link.whatsapp {
+          color: #25D366;
+        }
+
+        .support-link.whatsapp:hover {
+          color: #4ADE80;
+          text-decoration: underline;
+        }
+
+        .support-link.email {
+          color: #00B4D8;
+        }
+
+        .support-link.email:hover {
+          color: #38BDF8;
+          text-decoration: underline;
         }
 
         .footer-bottom-row {

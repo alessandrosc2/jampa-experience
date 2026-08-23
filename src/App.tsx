@@ -29,6 +29,7 @@ import { Footer } from './components/landing/Footer';
 import { MobileBottomNav } from './components/navigation/MobileBottomNav';
 import { LgpdConsentBanner } from './components/legal/LgpdConsentBanner';
 import { PrivacyPolicyModal } from './components/legal/PrivacyPolicyModal';
+import { WhatsAppFloatingButton } from './components/common/WhatsAppFloatingButton';
 
 export function App() {
   // Limpeza de qualquer tema claro prévio para garantir Modo Escuro Luxury Ocean
@@ -391,6 +392,9 @@ export function App() {
         isVipMode={isVipMode}
         onSelectTab={handleMobileTabSelect}
       />
+
+      {/* Botão Flutuante de Atendimento WhatsApp */}
+      <WhatsAppFloatingButton phoneNumber="5583993595124" />
 
       {/* Banner de Consentimento LGPD (Cookies & Privacidade) */}
       <LgpdConsentBanner onOpenPrivacyModal={() => setIsPrivacyOpen(true)} />
