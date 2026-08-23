@@ -82,32 +82,33 @@ export const Button: React.FC<ButtonProps> = ({
         .btn-primary {
           background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
           color: #040911;
-          box-shadow: 0 4px 18px rgba(0, 180, 216, 0.35);
+          box-shadow: 0 4px 18px rgba(0, 180, 216, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
           border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .btn-primary:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 6px 26px rgba(0, 180, 216, 0.55);
+          box-shadow: 0 8px 28px rgba(0, 180, 216, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4);
           filter: brightness(1.08);
         }
         .btn-primary:active:not(:disabled) {
-          transform: translateY(0);
+          transform: scale(0.97);
         }
 
         /* Variant: Gold (Sunset Luxury) */
         .btn-gold {
-          background: linear-gradient(135deg, #F4A261 0%, #E76F51 100%);
+          background: linear-gradient(135deg, #F59E0B 0%, #EA580C 50%, #D97706 100%);
           color: #060B11;
-          box-shadow: 0 4px 20px rgba(244, 162, 97, 0.4);
+          box-shadow: 0 4px 22px rgba(234, 88, 12, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
           border: 1px solid rgba(255, 255, 255, 0.25);
+          text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
         }
         .btn-gold:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 8px 30px rgba(244, 162, 97, 0.6);
+          box-shadow: 0 8px 32px rgba(234, 88, 12, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.45);
           filter: brightness(1.08);
         }
         .btn-gold:active:not(:disabled) {
-          transform: translateY(0);
+          transform: scale(0.97);
         }
 
         /* Variant: Outline */

@@ -190,16 +190,17 @@ export const Header: React.FC<HeaderProps> = ({
           right: 0;
           z-index: 1000;
           height: var(--header-height);
-          background: rgba(6, 11, 17, 0.7);
-          backdrop-filter: blur(12px);
-          border-bottom: 1px solid var(--border-subtle);
+          background: rgba(6, 12, 19, 0.75);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.07);
           transition: all var(--transition-normal);
         }
 
         .header-scrolled {
-          background: rgba(6, 11, 17, 0.95);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-          border-bottom-color: rgba(0, 180, 216, 0.25);
+          background: rgba(6, 12, 19, 0.92);
+          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 180, 216, 0.1);
+          border-bottom: 1px solid rgba(0, 180, 216, 0.25);
         }
 
         .header-inner {

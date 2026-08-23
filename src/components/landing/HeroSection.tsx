@@ -226,17 +226,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
         .hero-headline {
           font-family: var(--font-display);
-          font-size: clamp(2.25rem, 5.5vw, 3.75rem);
-          font-weight: 800;
+          font-size: clamp(2.35rem, 5.5vw, 3.85rem);
+          font-weight: 850;
           color: #F8FAFC;
-          line-height: 1.15;
-          letter-spacing: -0.02em;
+          line-height: 1.12;
+          letter-spacing: -0.03em;
+          text-wrap: balance;
         }
 
         .hero-headline-gradient {
-          background: linear-gradient(135deg, #00B4D8 0%, #38BDF8 50%, #F4A261 100%);
+          background: linear-gradient(135deg, #38BDF8 0%, #00B4D8 35%, #FDBA74 80%, #F59E0B 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 2px 12px rgba(0, 180, 216, 0.25));
         }
 
         .hero-subheadline {
@@ -250,13 +252,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           display: flex;
           align-items: center;
           gap: var(--space-lg);
-          padding: var(--space-md) var(--space-lg);
-          background: rgba(12, 20, 31, 0.75);
-          border: 1px solid rgba(244, 162, 97, 0.3);
+          padding: 0.9rem 1.4rem;
+          background: linear-gradient(145deg, rgba(14, 25, 40, 0.85) 0%, rgba(8, 14, 23, 0.92) 100%);
+          border: 1px solid rgba(244, 162, 97, 0.35);
           border-radius: var(--radius-lg);
-          backdrop-filter: blur(12px);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 20px rgba(244, 162, 97, 0.12);
           width: fit-content;
+          transition: transform var(--transition-normal), border-color var(--transition-normal);
+        }
+
+        .hero-offer-highlight:hover {
+          border-color: rgba(244, 162, 97, 0.6);
+          transform: translateY(-2px);
         }
 
         .offer-tag-col {

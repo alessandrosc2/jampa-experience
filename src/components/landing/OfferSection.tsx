@@ -179,9 +179,10 @@ export const OfferSection: React.FC<OfferSectionProps> = ({ onOpenCheckout }) =>
         }
 
         .text-gradient-gold {
-          background: linear-gradient(135deg, #F4A261 0%, #E76F51 100%);
+          background: linear-gradient(135deg, #FDBA74 0%, #F59E0B 40%, #EA580C 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 2px 10px rgba(234, 88, 12, 0.3));
         }
 
         .offer-desc {
@@ -211,15 +212,15 @@ export const OfferSection: React.FC<OfferSectionProps> = ({ onOpenCheckout }) =>
         }
 
         .offer-right-box {
-          background: rgba(8, 14, 22, 0.92);
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: linear-gradient(145deg, rgba(16, 28, 44, 0.95) 0%, rgba(9, 15, 24, 0.98) 100%);
+          border: 1px solid rgba(245, 158, 11, 0.35);
           border-radius: var(--radius-lg);
           padding: var(--space-2xl);
           display: flex;
           flex-direction: column;
           gap: var(--space-lg);
           text-align: center;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 16px 45px -5px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 30px rgba(245, 158, 11, 0.15);
         }
 
         .pricing-header {

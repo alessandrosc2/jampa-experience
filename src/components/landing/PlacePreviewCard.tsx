@@ -146,9 +146,10 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
         .place-preview-card {
           border-radius: var(--radius-lg);
           overflow: hidden;
-          background: rgba(12, 20, 31, 0.85);
-          border: 1px solid var(--border-subtle);
-          transition: all var(--transition-normal);
+          background: linear-gradient(145deg, rgba(14, 24, 38, 0.9) 0%, rgba(8, 14, 22, 0.96) 100%);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), border-color 300ms, box-shadow 300ms;
           cursor: pointer;
           display: flex;
           flex-direction: column;
@@ -156,8 +157,8 @@ export const PlacePreviewCard: React.FC<PlacePreviewCardProps> = ({
 
         .place-preview-card:hover {
           transform: translateY(-6px);
-          border-color: rgba(0, 180, 216, 0.4);
-          box-shadow: 0 16px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 180, 216, 0.15);
+          border-color: rgba(0, 180, 216, 0.45);
+          box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.75), 0 0 30px rgba(0, 180, 216, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .card-image-wrap {
