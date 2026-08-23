@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   Sparkles,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
@@ -41,6 +43,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showRegisterPasswordConfirm, setShowRegisterPasswordConfirm] = useState(false);
 
   const resetForm = () => {
     setErrorMessage(null);
@@ -185,13 +190,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="input-icon-wrap">
                 <Lock size={18} className="input-icon" />
                 <input
-                  type="password"
+                  type={showLoginPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="form-input with-icon"
+                  className="form-input with-icon with-eye"
                 />
+                <button
+                  type="button"
+                  className="pass-toggle-eye-btn"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  aria-label={showLoginPassword ? 'Ocultar senha' : 'Ver senha'}
+                  title={showLoginPassword ? 'Ocultar senha' : 'Ver senha'}
+                >
+                  {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
@@ -257,13 +271,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="input-icon-wrap">
                 <Lock size={18} className="input-icon" />
                 <input
-                  type="password"
+                  type={showRegisterPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="form-input with-icon"
+                  className="form-input with-icon with-eye"
                 />
+                <button
+                  type="button"
+                  className="pass-toggle-eye-btn"
+                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                  aria-label={showRegisterPassword ? 'Ocultar senha' : 'Ver senha'}
+                  title={showRegisterPassword ? 'Ocultar senha' : 'Ver senha'}
+                >
+                  {showRegisterPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
@@ -272,13 +295,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="input-icon-wrap">
                 <Lock size={18} className="input-icon" />
                 <input
-                  type="password"
+                  type={showRegisterPasswordConfirm ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
                   value={passwordConfirmation}
                   onChange={(e) => setPasswordConfirmation(e.target.value)}
-                  className="form-input with-icon"
+                  className="form-input with-icon with-eye"
                 />
+                <button
+                  type="button"
+                  className="pass-toggle-eye-btn"
+                  onClick={() => setShowRegisterPasswordConfirm(!showRegisterPasswordConfirm)}
+                  aria-label={showRegisterPasswordConfirm ? 'Ocultar confirmação de senha' : 'Ver confirmação de senha'}
+                  title={showRegisterPasswordConfirm ? 'Ocultar confirmação de senha' : 'Ver confirmação de senha'}
+                >
+                  {showRegisterPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
@@ -484,6 +516,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         .form-input.with-icon:focus {
           border-color: #00B4D8;
           box-shadow: 0 0 15px rgba(0, 180, 216, 0.2);
+        }
+
+        .form-input.with-icon.with-eye {
+          padding-right: 2.85rem;
+        }
+
+        .pass-toggle-eye-btn {
+          position: absolute;
+          right: 0.85rem;
+          background: transparent;
+          border: none;
+          color: #94A3B8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.25rem;
+          cursor: pointer;
+          border-radius: var(--radius-sm);
+          transition: color var(--transition-fast), transform var(--transition-fast);
+          z-index: 2;
+        }
+
+        .pass-toggle-eye-btn:hover {
+          color: #00B4D8;
+          transform: scale(1.1);
+        }
+
+        .pass-toggle-eye-btn:active {
+          transform: scale(0.95);
         }
 
         .switch-auth-mode {
