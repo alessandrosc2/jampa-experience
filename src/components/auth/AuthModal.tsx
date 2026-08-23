@@ -12,7 +12,8 @@ import {
   AlertCircle,
   ArrowRight,
   Eye,
-  EyeOff
+  EyeOff,
+  Smartphone
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
@@ -41,11 +42,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Form states
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showRegisterPasswordConfirm, setShowRegisterPasswordConfirm] = useState(false);
+
+  const formatPhone = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  };
 
   const resetForm = () => {
     setErrorMessage(null);
@@ -82,6 +92,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const user = await authService.register({
         name,
         email,
+        phone,
         password,
         passwordConfirmation
       });
@@ -261,6 +272,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="form-input with-icon"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Fone / WhatsApp (DDD + Número)</label>
+              <div className="input-icon-wrap">
+                <Smartphone size={18} className="input-icon" />
+                <input
+                  type="tel"
+                  required
+                  placeholder="(83) 99999-9999"
+                  value={phone}
+                  onChange={(e) => setPhone(formatPhone(e.target.value))}
                   className="form-input with-icon"
                 />
               </div>

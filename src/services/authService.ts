@@ -162,6 +162,8 @@ class AuthService {
       throw new Error('A confirmação de senha não confere.');
     }
 
+    const phone = data.phone?.trim() || '';
+
     // 1. Integração com Supabase Auth
     if (isSupabaseConfigured() && supabase) {
       try {
@@ -169,7 +171,7 @@ class AuthService {
           email,
           password: data.password,
           options: {
-            data: { full_name: name }
+            data: { full_name: name, phone }
           }
         });
 
@@ -182,6 +184,7 @@ class AuthService {
             id: authData.user.id,
             name,
             email,
+            phone,
             avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=00B4D8,F4A261`,
             createdAt: new Date().toLocaleDateString('pt-BR'),
             accessStatus: 'registered',
@@ -193,6 +196,7 @@ class AuthService {
             id: authData.user.id,
             full_name: name,
             email,
+            phone,
             access_status: 'registered',
             access_type: 'none'
           });
@@ -218,6 +222,7 @@ class AuthService {
       id: 'usr-' + Math.random().toString(36).substring(2, 9),
       name,
       email,
+      phone,
       avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=00B4D8,F4A261`,
       createdAt: new Date().toLocaleDateString('pt-BR'),
       accessStatus: 'registered',

@@ -83,6 +83,7 @@ export const UserDashboardModal: React.FC<UserDashboardModalProps> = ({
                 )}
               </div>
               <span className="user-email-text">{user.email}</span>
+              {user.phone && <span className="user-phone-text">WhatsApp: {user.phone}</span>}
               <span className="user-since-text">Membro desde: {user.createdAt}</span>
             </div>
           </div>
