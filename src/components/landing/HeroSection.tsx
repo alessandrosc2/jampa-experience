@@ -43,7 +43,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </Badge>
             ) : (
               <Badge variant="gold" icon={<Flame size={14} />}>
-                GUIA TURÍSTICO DIGITAL PREMIUM • JOÃO PESSOA - PB
+                <span className="badge-text-desktop">GUIA TURÍSTICO DIGITAL PREMIUM • JOÃO PESSOA - PB</span>
+                <span className="badge-text-mobile">GUIA TURÍSTICO PREMIUM • JOÃO PESSOA</span>
               </Badge>
             )}
           </div>
@@ -391,9 +392,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           color: #CBD5E1;
         }
 
-        .vip-active-note {
-          color: #CBD5E1;
-          font-weight: 500;
+        .badge-text-desktop {
+          display: inline;
+        }
+
+        .badge-text-mobile {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .hero-section {
+            padding-top: calc(var(--header-height) + 1.75rem);
+            padding-bottom: 2.5rem;
+            min-height: auto;
+          }
+          .hero-content {
+            gap: 1.25rem;
+          }
         }
 
         @media (max-width: 640px) {
@@ -411,6 +426,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           }
           .vip-hub-divider {
             display: none;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .hero-section {
+            padding-top: calc(var(--header-height) + 1.25rem);
+          }
+          .badge-text-desktop {
+            display: none;
+          }
+          .badge-text-mobile {
+            display: inline;
           }
         }
       `}</style>
