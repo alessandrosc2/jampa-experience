@@ -450,16 +450,90 @@ export const Header: React.FC<HeaderProps> = ({
 
         @media (max-width: 900px) {
           .desktop-nav {
-            display: none;
+            display: none !important;
           }
           .mobile-menu-btn {
-            display: block;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
           }
           .mobile-drawer {
             display: block;
           }
-          .header-cta-btn {
+          .header-cta-btn, button.header-cta-btn, button.btn-base.header-cta-btn {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .header-inner {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+          }
+          .brand-logo {
+            gap: 0.5rem;
+          }
+          .logo-icon-wrapper {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+          }
+          .logo-compass {
+            width: 18px !important;
+            height: 18px !important;
+          }
+          .logo-main {
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+          }
+          .logo-sub {
+            font-size: 0.5rem;
+            letter-spacing: 0.1em;
+          }
+          .header-actions {
+            gap: 0.35rem;
+          }
+          .fav-header-btn {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+          }
+          .login-nav-btn {
+            padding: 0.35rem 0.65rem;
+            font-size: 0.75rem;
+            gap: 0.25rem;
+            white-space: nowrap;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .logo-sub {
             display: none;
+          }
+          .header-inner {
+            padding-left: 0.35rem;
+            padding-right: 0.35rem;
+          }
+          .brand-logo {
+            gap: 0.35rem;
+          }
+          .logo-main {
+            font-size: 0.875rem;
+          }
+          .header-actions {
+            gap: 0.25rem;
+          }
+          .fav-header-btn {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+          }
+          .login-nav-btn {
+            padding: 0.3rem 0.45rem;
+            font-size: 0.6875rem;
+          }
+          .mobile-menu-btn {
+            padding: 0.15rem;
           }
         }
       `}</style>
