@@ -26,6 +26,9 @@ import { PwaInstallBanner } from './components/pwa/PwaInstallBanner';
 import { OfflineIndicator } from './components/pwa/OfflineIndicator';
 import { ModeSwitcher } from './components/landing/ModeSwitcher';
 import { Footer } from './components/landing/Footer';
+import { MobileBottomNav } from './components/navigation/MobileBottomNav';
+import { LgpdConsentBanner } from './components/legal/LgpdConsentBanner';
+import { PrivacyPolicyModal } from './components/legal/PrivacyPolicyModal';
 
 export function App() {
   // Limpeza de qualquer tema claro prévio para garantir Modo Escuro Luxury Ocean
@@ -85,7 +88,30 @@ export function App() {
   const [authInitialTab, setAuthInitialTab] = useState<'login' | 'register'>('login');
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [mobileActiveTab, setMobileActiveTab] = useState<'explore' | 'map' | 'itineraries' | 'favorites' | 'vip'>('explore');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleMobileTabSelect = (tab: 'explore' | 'map' | 'itineraries' | 'favorites' | 'vip') => {
+    setMobileActiveTab(tab);
+    if (tab === 'explore') {
+      scrollToPreview();
+    } else if (tab === 'map') {
+      const el = document.getElementById('mapa');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else if (tab === 'itineraries') {
+      const el = document.getElementById('roteiros');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else if (tab === 'favorites') {
+      setIsFavoritesOpen(true);
+    } else if (tab === 'vip') {
+      if (isVipMode) {
+        setIsDashboardOpen(true);
+      } else {
+        setIsCheckoutOpen(true);
+      }
+    }
+  };
   // Detecção de Rota: /PainelAdmin01 isola 100% o Painel Administrativo
   const [isAdminRoute, setIsAdminRoute] = useState<boolean>(() => {
     const path = window.location.pathname.toLowerCase();
@@ -353,10 +379,27 @@ export function App() {
       )}
 
       {/* Rodapé Público (Zero botões de admin) */}
-      <Footer isVipMode={isVipMode} />
+      <Footer isVipMode={isVipMode} onOpenPrivacyModal={() => setIsPrivacyOpen(true)} />
 
       {/* Banner Inteligente de Instalação PWA */}
       <PwaInstallBanner />
+
+      {/* Barra de Navegação Inferior Fixa (Mobile Thumb Zone Ergonomics) */}
+      <MobileBottomNav
+        activeTab={mobileActiveTab}
+        favoriteCount={favoriteIds.length}
+        isVipMode={isVipMode}
+        onSelectTab={handleMobileTabSelect}
+      />
+
+      {/* Banner de Consentimento LGPD (Cookies & Privacidade) */}
+      <LgpdConsentBanner onOpenPrivacyModal={() => setIsPrivacyOpen(true)} />
+
+      {/* Modal de Política de Privacidade e Termos de Uso (LGPD) */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
 
       {/* Switcher Interativo de Modos (Visitante x VIP) */}
       <ModeSwitcher isVipMode={isVipMode} onToggle={handleToggleVipMode} />

@@ -3,9 +3,10 @@ import { Compass, ShieldCheck, Heart, MapPin, CheckCircle2 } from 'lucide-react'
 
 interface FooterProps {
   isVipMode?: boolean;
+  onOpenPrivacyModal?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ isVipMode = false }) => {
+export const Footer: React.FC<FooterProps> = ({ isVipMode = false, onOpenPrivacyModal }) => {
   return (
     <footer className="site-footer">
       <div className="container footer-container">
@@ -106,9 +107,20 @@ export const Footer: React.FC<FooterProps> = ({ isVipMode = false }) => {
 
         {/* Linha Divisória e Rodapé Inferior */}
         <div className="footer-bottom-row">
-          <p className="copyright-text">
-            © 2026 JAMPA EXPERIENCE. Todos os direitos reservados.
-          </p>
+          <div className="copyright-group">
+            <p className="copyright-text">
+              © 2026 JAMPA EXPERIENCE. Todos os direitos reservados.
+            </p>
+            {onOpenPrivacyModal && (
+              <button
+                type="button"
+                className="footer-privacy-btn"
+                onClick={onOpenPrivacyModal}
+              >
+                Privacidade & Termos (LGPD)
+              </button>
+            )}
+          </div>
           <div className="made-with-love">
             Feito com <Heart size={14} fill="#E63946" color="#E63946" /> para apaixonados por João Pessoa
           </div>
@@ -278,6 +290,28 @@ export const Footer: React.FC<FooterProps> = ({ isVipMode = false }) => {
           color: #64748B;
           flex-wrap: wrap;
           gap: var(--space-md);
+        }
+
+        .copyright-group {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+
+        .footer-privacy-btn {
+          background: transparent;
+          border: none;
+          padding: 0;
+          color: #38BDF8;
+          font-size: 0.75rem;
+          cursor: pointer;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        .footer-privacy-btn:hover {
+          color: #00B4D8;
         }
 
         .made-with-love {

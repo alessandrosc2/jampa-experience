@@ -355,6 +355,36 @@ export const PreviewGrid: React.FC<PreviewGridProps> = ({
           </div>
         </div>
 
+        {/* Chips de Busca Rápida por Intenção Turística (Mobile Ergonomics) */}
+        <div className="tourist-quick-tags-scroll" aria-label="Filtros Rápidos por Intenção">
+          {[
+            { label: '🌊 Piscinas Naturais', query: 'piscina' },
+            { label: '🌅 Pôr do Sol', query: 'por do sol' },
+            { label: '🍤 Frutos do Mar', query: 'frutos do mar' },
+            { label: '👨‍👩‍👧 Família & Crianças', query: 'calm' },
+            { label: '✨ Dica dos Nativos', query: 'dica' },
+            { label: '💎 Locais VIP', query: 'vip' }
+          ].map((tag) => {
+            const isActive = searchQuery.toLowerCase().includes(tag.query);
+            return (
+              <button
+                key={tag.label}
+                type="button"
+                className={`quick-tag-chip ${isActive ? 'active' : ''}`}
+                onClick={() => {
+                  if (isActive) {
+                    setSearchQuery('');
+                  } else {
+                    setSearchQuery(tag.query);
+                  }
+                }}
+              >
+                {tag.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* ======================================================== */}
         {/* CASO 1: BAIRRO ESPECÍFICO SELECIONADO -> ORGANIZADO POR TÓPICOS */}
         {/* ======================================================== */}
@@ -894,6 +924,50 @@ export const PreviewGrid: React.FC<PreviewGridProps> = ({
           background: rgba(255, 255, 255, 0.05);
           color: #94A3B8;
           border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* CHIPS DE BUSCA RÁPIDA (MOBILE ERGONOMICS) */
+        .tourist-quick-tags-scroll {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          overflow-x: auto;
+          padding: 0.25rem 0 0.75rem;
+          margin-bottom: var(--space-lg);
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .tourist-quick-tags-scroll::-webkit-scrollbar {
+          display: none;
+        }
+
+        .quick-tag-chip {
+          padding: 0.45rem 0.9rem;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: var(--radius-full);
+          color: #94A3B8;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+        }
+
+        .quick-tag-chip:hover {
+          background: rgba(0, 180, 216, 0.1);
+          color: #38BDF8;
+          border-color: rgba(0, 180, 216, 0.3);
+        }
+
+        .quick-tag-chip.active {
+          background: linear-gradient(135deg, rgba(0, 180, 216, 0.25), rgba(244, 162, 97, 0.15));
+          border-color: #00B4D8;
+          color: #F8FAFC;
+          font-weight: 700;
+          box-shadow: 0 0 12px rgba(0, 180, 216, 0.3);
         }
 
         @media (max-width: 768px) {
