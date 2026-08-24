@@ -1299,7 +1299,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     { id: 'neighborhoods', label: 'Bairros & Dicas', icon: <MapPin size={17} />, badge: neighborhoods.length },
     { id: 'topics', label: 'Tópicos & Seções', icon: <SlidersHorizontal size={17} />, badge: topics.length },
     { id: 'photos', label: 'Fotos & Galeria', icon: <Camera size={17} /> },
-    { id: 'partners', label: 'Parceiros & Cupons', icon: <Handshake size={17} />, badge: partnerStats.length },
+    { id: 'partners', label: 'Parceiros & Cupons', icon: <Handshake size={17} />, badge: partners.length },
     { id: 'categories', label: 'Modalidades', icon: <Layers size={17} />, badge: modalities.length },
     { id: 'qrcodes', label: 'Distribuição QR Code', icon: <QrCode size={17} />, badge: qrChannels.length },
     { id: 'tips', label: 'Dicas dos Locais', icon: <Sparkles size={17} /> },
@@ -2616,7 +2616,16 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 })
                 .map((part) => {
                   const linkedPlace = allPlaces.find((p) => p.id === part.placeId);
-                  const stats = { views: 140, whatsapp: 38, maps: 29, total: 67 };
+                  const partnerClicksMap = adminService.getPartnerClicksMap();
+                  const pStats = partnerClicksMap[part.id] || {};
+                  const placeStats = part.placeId ? (partnerClicksMap[part.placeId] || {}) : {};
+                  const pViews = (pStats.views || 0) + (placeStats.views || 0);
+                  const pWhatsapp = (pStats.whatsapp || 0) + (placeStats.whatsapp || 0);
+                  const pMaps = (pStats.maps || 0) + (placeStats.maps || 0);
+                  const pInstagram = (pStats.instagram || 0) + (placeStats.instagram || 0);
+                  const pWebsite = (pStats.website || 0) + (placeStats.website || 0);
+                  const pCoupon = (pStats.coupon || 0) + (placeStats.coupon || 0);
+                  const pTotal = (pStats.total || 0) + (placeStats.total || 0) || (pWhatsapp + pMaps + pInstagram + pWebsite + pCoupon);
 
                   return (
                     <div key={part.id} className="global-partner-card glass-panel">
@@ -2741,19 +2750,19 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       {/* Métricas de cliques / engajamento */}
                       <div className="partner-metrics-row">
                         <div className="p-metric-item">
-                          <span className="p-metric-val">{stats.views}</span>
+                          <span className="p-metric-val">{pViews}</span>
                           <span className="p-metric-lbl">Visualizações</span>
                         </div>
                         <div className="p-metric-item">
-                          <span className="p-metric-val">{stats.whatsapp}</span>
+                          <span className="p-metric-val">{pWhatsapp}</span>
                           <span className="p-metric-lbl">WhatsApp</span>
                         </div>
                         <div className="p-metric-item">
-                          <span className="p-metric-val">{stats.maps}</span>
+                          <span className="p-metric-val">{pMaps}</span>
                           <span className="p-metric-lbl">Como Chegar</span>
                         </div>
                         <div className="p-metric-item">
-                          <span className="p-metric-val">{stats.total}</span>
+                          <span className="p-metric-val">{pTotal}</span>
                           <span className="p-metric-lbl">Total Turistas</span>
                         </div>
                       </div>

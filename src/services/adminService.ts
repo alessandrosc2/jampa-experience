@@ -19,7 +19,7 @@ const STORAGE_NEIGHBORHOODS_KEY = 'jampa_admin_neighborhoods';
 const STORAGE_PARTNERS_KEY = 'jampa_admin_partners';
 const STORAGE_ITINERARIES_KEY = 'jampa_admin_itineraries';
 const STORAGE_ADMIN_LOGS_KEY = 'jampa_admin_system_logs';
-const STORAGE_PARTNER_CLICKS_KEY = 'jampa_partner_clicks_metrics';
+const STORAGE_PARTNER_CLICKS_KEY = 'jampa_partner_clicks_metrics_v2';
 const STORAGE_AFFILIATES_KEY = 'jampa_admin_affiliates_v1';
 const STORAGE_AFFILIATE_SALES_KEY = 'jampa_admin_affiliate_sales_v1';
 const STORAGE_QR_CHANNELS_KEY = 'jampa_admin_qr_channels_v2';
@@ -269,6 +269,62 @@ export const INITIAL_PARTNERS: Partner[] = [
     redemptionInstructions: 'Apresente o cupom CARIBESSA30 na recepção da tenda antes de iniciar o passeio.',
     whatsapp: '83999996666',
     instagram: '@caribessapb',
+    active: true,
+    createdAt: '2026-08-01T10:00:00.000Z',
+    updatedAt: '2026-08-01T10:00:00.000Z'
+  },
+  {
+    id: 'partner-sal-brasa',
+    placeId: 'praia-de-cabo-branco',
+    name: 'Churrascaria Sal e Brasa',
+    description: 'A Churrascaria Sal e Brasa é de longe o melhor rodízio de João Pessoa, cortes diferentes e carnes de qualidade, frutos do mar no buffet além de sushi feito na hora.',
+    address: 'Av. Cabo Branco, 1830 - Cabo Branco, João Pessoa - PB',
+    googleMapsUrl: 'https://maps.google.com/?q=Churrascaria+Sal+e+Brasa+Joao+Pessoa',
+    benefit: '02 cervejas ou refrigerantes',
+    partnershipLevel: 'Diamante',
+    couponCode: 'SALEBRASA2',
+    redemptionInstructions: 'Apresente o cupom ao chegar na mesa.',
+    whatsapp: '83982032981',
+    instagram: '@salebrasa.joaopessoa',
+    phone: '8330238770',
+    website: 'https://www.salebrasa.com.br',
+    active: true,
+    createdAt: '2026-08-01T10:00:00.000Z',
+    updatedAt: '2026-08-01T10:00:00.000Z'
+  },
+  {
+    id: 'partner-gulliver-mar',
+    placeId: 'praia-de-cabo-branco',
+    name: 'Gulliver Mar',
+    description: 'O Gulliver Mar traz uma culinária internacional com especialidade em frutos do mar. O restaurante possui mais de 50 pratos no cardápio e possui uma vista panorâmica lindíssima de toda orla.',
+    address: 'Av. Cabo Branco, 5160 - Cabo Branco, João Pessoa - PB',
+    googleMapsUrl: 'https://maps.google.com/?q=Gulliver+Mar+Joao+Pessoa',
+    benefit: '10% de desconto',
+    partnershipLevel: 'Diamante',
+    couponCode: 'GULLIVERJAMPA10',
+    redemptionInstructions: 'Apresente o cupom antes de pedir a conta.',
+    whatsapp: '8335786108',
+    instagram: '@restaurantegullivermar',
+    phone: '8335786108',
+    website: 'https://gulliverrestaurante.com.br',
+    active: true,
+    createdAt: '2026-08-01T10:00:00.000Z',
+    updatedAt: '2026-08-01T10:00:00.000Z'
+  },
+  {
+    id: 'partner-beco-magico',
+    placeId: 'miramar',
+    name: 'Beco Mágico',
+    description: 'Hamburgueria temática.',
+    address: 'R. Manoel Gualberto, 73 - Miramar, João Pessoa - PB',
+    googleMapsUrl: 'https://maps.google.com/?q=Beco+Magico+Joao+Pessoa',
+    benefit: '10% de desconto',
+    partnershipLevel: 'Oficial',
+    couponCode: 'BECOJAMPA10',
+    redemptionInstructions: 'Apresente antes de pagar a conta.',
+    whatsapp: '83993553063',
+    instagram: '@becomagicojoaopessoa',
+    phone: '83993553063',
     active: true,
     createdAt: '2026-08-01T10:00:00.000Z',
     updatedAt: '2026-08-01T10:00:00.000Z'
@@ -1280,10 +1336,11 @@ class AdminService {
   /* ======================================================== */
   /* RASTREAMENTO & ANALYTICS DE PARCEIROS COMERCIAIS */
   /* ======================================================== */
-  public trackPartnerClick(placeId: string, eventType: PartnerTrackingEvent, sourceChannel = 'web_app'): void {
+  public trackPartnerClick(placeOrPartnerId: string, eventType: PartnerTrackingEvent, sourceChannel = 'web_app'): void {
+    if (!placeOrPartnerId) return;
     try {
       const currentStats = this.getPartnerClicksMap();
-      const existing = currentStats[placeId] || {
+      const existing = currentStats[placeOrPartnerId] || {
         views: 0,
         whatsapp: 0,
         maps: 0,
@@ -1293,21 +1350,26 @@ class AdminService {
         total: 0
       };
 
-      if (eventType === 'view') existing.views += 1;
-      if (eventType === 'click_whatsapp') existing.whatsapp += 1;
-      if (eventType === 'click_maps') existing.maps += 1;
-      if (eventType === 'click_instagram') existing.instagram += 1;
-      if (eventType === 'click_website') existing.website += 1;
-      if (eventType === 'click_coupon') existing.coupon += 1;
+      if (eventType === 'view') existing.views = (existing.views || 0) + 1;
+      if (eventType === 'click_whatsapp') existing.whatsapp = (existing.whatsapp || 0) + 1;
+      if (eventType === 'click_maps') existing.maps = (existing.maps || 0) + 1;
+      if (eventType === 'click_instagram') existing.instagram = (existing.instagram || 0) + 1;
+      if (eventType === 'click_website') existing.website = (existing.website || 0) + 1;
+      if (eventType === 'click_coupon') existing.coupon = (existing.coupon || 0) + 1;
 
-      existing.total = existing.whatsapp + existing.maps + existing.instagram + existing.website + existing.coupon;
-      currentStats[placeId] = existing;
+      existing.total =
+        (existing.whatsapp || 0) +
+        (existing.maps || 0) +
+        (existing.instagram || 0) +
+        (existing.website || 0) +
+        (existing.coupon || 0);
 
+      currentStats[placeOrPartnerId] = existing;
       safeSetItem(STORAGE_PARTNER_CLICKS_KEY, JSON.stringify(currentStats));
 
       if (isSupabaseConfigured() && supabase) {
         supabase.from('partner_tracking').insert({
-          place_id: placeId,
+          place_id: placeOrPartnerId,
           event_type: eventType,
           source_channel: sourceChannel
         });
@@ -1317,7 +1379,7 @@ class AdminService {
     }
   }
 
-  private getPartnerClicksMap(): Record<string, any> {
+  public getPartnerClicksMap(): Record<string, any> {
     const data = localStorage.getItem(STORAGE_PARTNER_CLICKS_KEY);
     if (!data) return {};
     try {
@@ -1328,37 +1390,36 @@ class AdminService {
   }
 
   public getPartnerStats(): PartnerStat[] {
-    const places = this.getAllPlaces();
+    const partners = this.getPartners();
     const clicksMap = this.getPartnerClicksMap();
 
-    return places
-      .filter((p) => p.isPartner)
-      .map((p) => {
-        const stats = clicksMap[p.id] || {
-          views: 120 + Math.floor(Math.random() * 80),
-          whatsapp: 14 + Math.floor(Math.random() * 15),
-          maps: 25 + Math.floor(Math.random() * 20),
-          instagram: 18 + Math.floor(Math.random() * 12),
-          website: 9 + Math.floor(Math.random() * 8),
-          coupon: 32 + Math.floor(Math.random() * 25),
-          total: 98
-        };
+    return partners.map((p) => {
+      const pStats = clicksMap[p.id] || {};
+      const placeStats = p.placeId ? (clicksMap[p.placeId] || {}) : {};
 
-        return {
-          placeId: p.id,
-          placeName: p.name,
-          categoryLabel: p.categoryLabel,
-          partnerLevel: p.partnerLevel || 'standard',
-          partnerBenefit: p.partnerBenefit,
-          views: stats.views,
-          whatsappClicks: stats.whatsapp,
-          mapsClicks: stats.maps,
-          instagramClicks: stats.instagram,
-          websiteClicks: stats.website,
-          couponClicks: stats.coupon,
-          totalInteractions: stats.whatsapp + stats.maps + stats.instagram + stats.website + stats.coupon
-        };
-      });
+      const views = (pStats.views || 0) + (placeStats.views || 0);
+      const whatsappClicks = (pStats.whatsapp || 0) + (placeStats.whatsapp || 0);
+      const mapsClicks = (pStats.maps || 0) + (placeStats.maps || 0);
+      const instagramClicks = (pStats.instagram || 0) + (placeStats.instagram || 0);
+      const websiteClicks = (pStats.website || 0) + (placeStats.website || 0);
+      const couponClicks = (pStats.coupon || 0) + (placeStats.coupon || 0);
+      const totalInteractions = whatsappClicks + mapsClicks + instagramClicks + websiteClicks + couponClicks;
+
+      return {
+        placeId: p.placeId,
+        placeName: p.name,
+        categoryLabel: p.partnershipLevel,
+        partnerLevel: p.partnershipLevel,
+        partnerBenefit: p.benefit,
+        views,
+        whatsappClicks,
+        mapsClicks,
+        instagramClicks,
+        websiteClicks,
+        couponClicks,
+        totalInteractions
+      };
+    });
   }
 
   /* ======================================================== */

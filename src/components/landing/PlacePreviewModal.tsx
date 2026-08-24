@@ -118,6 +118,7 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
   useEffect(() => {
     if (isOpen && place && isVipMode && (place.isPartner || linkedPartners.length > 0)) {
       adminService.trackPartnerClick(place.id, 'view');
+      linkedPartners.forEach((pt: Partner) => adminService.trackPartnerClick(pt.id, 'view'));
     }
   }, [isOpen, place, isVipMode, linkedPartners]);
 
@@ -417,6 +418,7 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                                 iconLeft={<Copy size={13} />}
                                 onClick={() => {
                                   navigator.clipboard.writeText(partner.couponCode || '');
+                                  adminService.trackPartnerClick(partner.id, 'click_coupon');
                                   adminService.trackPartnerClick(place.id, 'click_coupon');
                                   setCopiedCoupon(true);
                                   setTimeout(() => setCopiedCoupon(false), 2500);
@@ -435,7 +437,10 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="partner-channel-btn whatsapp"
-                                onClick={() => adminService.trackPartnerClick(place.id, 'click_whatsapp')}
+                                onClick={() => {
+                                  adminService.trackPartnerClick(partner.id, 'click_whatsapp');
+                                  adminService.trackPartnerClick(place.id, 'click_whatsapp');
+                                }}
                               >
                                 <MessageCircle size={15} />
                                 <span>WhatsApp Direto</span>
@@ -448,7 +453,10 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="partner-channel-btn instagram"
-                                onClick={() => adminService.trackPartnerClick(place.id, 'click_instagram')}
+                                onClick={() => {
+                                  adminService.trackPartnerClick(partner.id, 'click_instagram');
+                                  adminService.trackPartnerClick(place.id, 'click_instagram');
+                                }}
                               >
                                 <Camera size={15} />
                                 <span>{partner.instagram.startsWith('@') ? partner.instagram : `@${partner.instagram}`}</span>
@@ -471,7 +479,10 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="partner-channel-btn website"
-                                onClick={() => adminService.trackPartnerClick(place.id, 'click_website')}
+                                onClick={() => {
+                                  adminService.trackPartnerClick(partner.id, 'click_website');
+                                  adminService.trackPartnerClick(place.id, 'click_website');
+                                }}
                               >
                                 <Globe size={15} />
                                 <span>Site Oficial</span>
@@ -484,6 +495,10 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="partner-channel-btn maps"
+                                onClick={() => {
+                                  adminService.trackPartnerClick(partner.id, 'click_maps');
+                                  adminService.trackPartnerClick(place.id, 'click_maps');
+                                }}
                               >
                                 <MapPin size={15} />
                                 <span>Google Maps</span>
@@ -535,6 +550,10 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="gps-btn google-maps"
+                    onClick={() => {
+                      adminService.trackPartnerClick(place.id, 'click_maps');
+                      linkedPartners.forEach((pt: Partner) => adminService.trackPartnerClick(pt.id, 'click_maps'));
+                    }}
                   >
                     📍 Abrir no Google Maps
                   </a>
@@ -543,6 +562,10 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="gps-btn apple-maps"
+                    onClick={() => {
+                      adminService.trackPartnerClick(place.id, 'click_maps');
+                      linkedPartners.forEach((pt: Partner) => adminService.trackPartnerClick(pt.id, 'click_maps'));
+                    }}
                   >
                     🗺️ Abrir no Apple Maps
                   </a>
@@ -551,6 +574,10 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="gps-btn waze"
+                    onClick={() => {
+                      adminService.trackPartnerClick(place.id, 'click_maps');
+                      linkedPartners.forEach((pt: Partner) => adminService.trackPartnerClick(pt.id, 'click_maps'));
+                    }}
                   >
                     🚗 Navegar com Waze
                   </a>
