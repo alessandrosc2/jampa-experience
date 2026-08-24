@@ -22,6 +22,7 @@ const STORAGE_ADMIN_LOGS_KEY = 'jampa_admin_system_logs';
 const STORAGE_PARTNER_CLICKS_KEY = 'jampa_partner_clicks_metrics';
 const STORAGE_AFFILIATES_KEY = 'jampa_admin_affiliates_v1';
 const STORAGE_AFFILIATE_SALES_KEY = 'jampa_admin_affiliate_sales_v1';
+const STORAGE_QR_CHANNELS_KEY = 'jampa_admin_qr_channels_v2';
 
 export const INITIAL_NEIGHBORHOODS: Neighborhood[] = [
   {
@@ -1364,44 +1365,113 @@ class AdminService {
   /* HUB DE DISTRIBUIÇÃO FÍSICA & QR CODES */
   /* ======================================================== */
   public getQrChannels(): QrChannel[] {
-    return [
-      {
-        id: 'qr-aeroporto',
-        name: 'Totem de Desembarque — Aeroporto Castro Pinto',
-        locationCategory: 'Aeroporto & Chegada',
-        sourceCode: 'aeroporto_jampa',
-        scanCount: 1420,
-        conversionCount: 312,
-        targetUrl: `${window.location.origin}/?src=aeroporto_jampa`
-      },
-      {
-        id: 'qr-rodoviaria',
-        name: 'Terminal Rodoviário de João Pessoa',
-        locationCategory: 'Rodoviária & Transporte',
-        sourceCode: 'rodoviaria_jampa',
-        scanCount: 680,
-        conversionCount: 114,
-        targetUrl: `${window.location.origin}/?src=rodoviaria_jampa`
-      },
-      {
-        id: 'qr-hoteis-tambau',
-        name: 'Recepções e Quartos — Hotéis Tambaú & Cabo Branco',
-        locationCategory: 'Hotelaria & Hospedagem',
-        sourceCode: 'hoteis_orla_jampa',
-        scanCount: 2340,
-        conversionCount: 580,
-        targetUrl: `${window.location.origin}/?src=hoteis_orla_jampa`
-      },
-      {
-        id: 'qr-restaurantes',
-        name: 'Displays de Mesa em Restaurantes Parceiros',
-        locationCategory: 'Gastronomia & Parceiros',
-        sourceCode: 'restaurantes_parceiros',
-        scanCount: 890,
-        conversionCount: 172,
-        targetUrl: `${window.location.origin}/?src=restaurantes_parceiros`
+    const data = localStorage.getItem(STORAGE_QR_CHANNELS_KEY);
+    if (!data) {
+      return [];
+    }
+    try {
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  public saveQrChannel(channel: Partial<QrChannel>): QrChannel {
+    const channels = this.getQrChannels();
+    const sourceCode = (channel.sourceCode || channel.name || 'ponto')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9_-]/g, '_')
+      .replace(/_+/g, '_');
+
+    const domain = 'https://jampaexperience.online';
+    const targetUrl = `${domain}/?src=${sourceCode}`;
+
+    let saved: QrChannel;
+
+    if (channel.id) {
+      const index = channels.findIndex(c => c.id === channel.id);
+      if (index >= 0) {
+        saved = {
+          ...channels[index],
+          ...channel,
+          sourceCode,
+          targetUrl,
+          id: channel.id
+        } as QrChannel;
+        channels[index] = saved;
+      } else {
+        saved = {
+          id: channel.id,
+          name: channel.name || 'Novo Ponto de Distribuição',
+          locationCategory: channel.locationCategory || 'Geral',
+          sourceCode,
+          scanCount: channel.scanCount || 0,
+          conversionCount: channel.conversionCount || 0,
+          targetUrl
+        };
+        channels.unshift(saved);
       }
-    ];
+    } else {
+      saved = {
+        id: `qr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        name: channel.name || 'Novo Ponto de Distribuição',
+        locationCategory: channel.locationCategory || 'Geral',
+        sourceCode,
+        scanCount: 0,
+        conversionCount: 0,
+        targetUrl
+      };
+      channels.unshift(saved);
+    }
+
+    safeSetItem(STORAGE_QR_CHANNELS_KEY, JSON.stringify(channels));
+
+    this.addLog({
+      type: 'general',
+      title: channel.id ? 'Ponto QR Code Atualizado' : 'Novo Ponto QR Code Criado',
+      details: `Ponto "${saved.name}" (${saved.locationCategory}) salvo com identificador "${saved.sourceCode}".`
+    });
+
+    return saved;
+  }
+
+  public deleteQrChannel(id: string): void {
+    const channels = this.getQrChannels();
+    const target = channels.find(c => c.id === id);
+    const filtered = channels.filter(c => c.id !== id);
+    safeSetItem(STORAGE_QR_CHANNELS_KEY, JSON.stringify(filtered));
+
+    if (target) {
+      this.addLog({
+        type: 'place_deleted',
+        title: 'Ponto QR Code Excluído',
+        details: `O ponto físico "${target.name}" (${target.sourceCode}) foi removido.`
+      });
+    }
+  }
+
+  public trackQrChannelScan(sourceCode: string): void {
+    if (!sourceCode) return;
+    const clean = sourceCode.toLowerCase().trim();
+    const channels = this.getQrChannels();
+    const match = channels.find(c => c.sourceCode.toLowerCase() === clean);
+    if (match) {
+      match.scanCount = (match.scanCount || 0) + 1;
+      safeSetItem(STORAGE_QR_CHANNELS_KEY, JSON.stringify(channels));
+    }
+  }
+
+  public recordQrChannelConversion(sourceCode: string): void {
+    if (!sourceCode) return;
+    const clean = sourceCode.toLowerCase().trim();
+    const channels = this.getQrChannels();
+    const match = channels.find(c => c.sourceCode.toLowerCase() === clean);
+    if (match) {
+      match.conversionCount = (match.conversionCount || 0) + 1;
+      safeSetItem(STORAGE_QR_CHANNELS_KEY, JSON.stringify(channels));
+    }
   }
 
   /* ======================================================== */

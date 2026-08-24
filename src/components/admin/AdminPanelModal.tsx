@@ -141,6 +141,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [selectedAffiliateForPayout, setSelectedAffiliateForPayout] = useState<Affiliate | null>(null);
   const [payoutAmountInput, setPayoutAmountInput] = useState<string>('');
 
+  // Estados de Hub de Distribuição Física / Canais QR Code
+  const [isQrChannelModalOpen, setIsQrChannelModalOpen] = useState(false);
+  const [editingQrChannel, setEditingQrChannel] = useState<Partial<QrChannel> | null>(null);
+  const [selectedQrChannelForDisplay, setSelectedQrChannelForDisplay] = useState<QrChannel | null>(null);
+  const [qrFormName, setQrFormName] = useState('');
+  const [qrFormCategory, setQrFormCategory] = useState('Hotelaria & Hospedagem');
+  const [qrFormSourceCode, setQrFormSourceCode] = useState('');
+
   // Estado de Bairros & Dicas
   const [isNeighborhoodModalOpen, setIsNeighborhoodModalOpen] = useState(false);
   const [editingNeighborhood, setEditingNeighborhood] = useState<Partial<Neighborhood> | null>(null);
@@ -459,6 +467,61 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     syncLocalData();
     setSelectedAffiliateForPayout(null);
     showNotification(`💸 Pagamento de R$ ${amount.toFixed(2)} registrado para ${selectedAffiliateForPayout.name}!`);
+  };
+
+  /* ======================================================== */
+  /* OPERAÇÕES DE CANAIS / PONTOS DE DISTRIBUIÇÃO QR CODE */
+  /* ======================================================== */
+  const handleOpenNewQrChannel = () => {
+    setEditingQrChannel(null);
+    setQrFormName('');
+    setQrFormCategory('Hotelaria & Hospedagem');
+    setQrFormSourceCode('');
+    setIsQrChannelModalOpen(true);
+  };
+
+  const handleEditQrChannel = (ch: QrChannel) => {
+    setEditingQrChannel(ch);
+    setQrFormName(ch.name);
+    setQrFormCategory(ch.locationCategory);
+    setQrFormSourceCode(ch.sourceCode);
+    setIsQrChannelModalOpen(true);
+  };
+
+  const handleSaveQrChannelSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!qrFormName.trim()) {
+      showNotification('Preencha o nome do local ou ponto.');
+      return;
+    }
+
+    const saved = adminService.saveQrChannel({
+      id: editingQrChannel?.id,
+      name: qrFormName.trim(),
+      locationCategory: qrFormCategory.trim() || 'Geral',
+      sourceCode: qrFormSourceCode.trim() || qrFormName.trim(),
+      scanCount: editingQrChannel?.scanCount || 0,
+      conversionCount: editingQrChannel?.conversionCount || 0
+    });
+
+    setQrChannels(adminService.getQrChannels());
+    syncLocalData();
+    setIsQrChannelModalOpen(false);
+    showNotification(`✅ Ponto "${saved.name}" salvo com sucesso!`);
+  };
+
+  const handleDeleteQrChannel = (id: string, name: string) => {
+    if (window.confirm(`Deseja realmente excluir o ponto "${name}"?`)) {
+      adminService.deleteQrChannel(id);
+      setQrChannels(adminService.getQrChannels());
+      syncLocalData();
+      showNotification(`🗑️ Ponto "${name}" excluído.`);
+    }
+  };
+
+  const handleCopyQrChannelLink = (targetUrl: string) => {
+    navigator.clipboard.writeText(targetUrl);
+    showNotification(`📋 Link copiado: ${targetUrl}`);
   };
 
   /* ======================================================== */
@@ -2723,71 +2786,121 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         {/* ======================================================== */}
         {activeTab === 'qrcodes' && (
           <div className="admin-tab-content">
-            <div className="admin-toolbar">
+            <div className="admin-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <h4>Hub de Distribuição Física por QR Codes</h4>
                 <p className="admin-sec-sub">Materiais para totens, balcões de hotéis, aeroporto e displays de mesa.</p>
               </div>
+
+              <Button
+                variant="gold"
+                iconLeft={<Plus size={16} />}
+                onClick={handleOpenNewQrChannel}
+              >
+                Novo Local / Display QR Code
+              </Button>
             </div>
 
-            <div className="qrcodes-channels-grid">
-              {qrChannels.map((ch) => (
-                <div key={ch.id} className="qr-channel-card glass-panel">
-                  <div className="qr-preview-box">
-                    {/* QR Code SVG Vetorial Estilizado */}
-                    <div className="qr-code-svg-wrap">
-                      <QrCode size={90} color="#060B11" />
-                    </div>
-                    <span className="qr-source-tag">Origem: {ch.sourceCode}</span>
-                  </div>
-
-                  <div className="qr-info-box">
-                    <Badge variant="cyan" size="sm">{ch.locationCategory}</Badge>
-                    <h4 className="qr-channel-name">{ch.name}</h4>
-                    <p className="qr-link-copy">
-                      <code>{ch.targetUrl}</code>
-                    </p>
-
-                    <div className="qr-stats-row">
-                      <div className="qr-stat-badge">
-                        <strong>{ch.scanCount}</strong>
-                        <span>Leituras</span>
-                      </div>
-                      <div className="qr-stat-badge">
-                        <strong>{ch.conversionCount}</strong>
-                        <span>Vendas</span>
-                      </div>
-                      <div className="qr-stat-badge">
-                        <strong>{((ch.conversionCount / ch.scanCount) * 100).toFixed(1)}%</strong>
-                        <span>Conversão</span>
-                      </div>
-                    </div>
-
-                    <div className="qr-card-actions">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        iconLeft={<Copy size={13} />}
-                        onClick={() => {
-                          navigator.clipboard.writeText(ch.targetUrl);
-                          showNotification('Link copiado!');
-                        }}
-                      >
-                        Copiar Link
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="gold"
-                        iconLeft={<Printer size={13} />}
-                        onClick={() => window.print()}
-                      >
-                        Imprimir Display
-                      </Button>
-                    </div>
-                  </div>
+            {qrChannels.length === 0 ? (
+              <div className="empty-results-box glass-panel" style={{ textAlign: 'center', padding: '3.5rem 1.5rem', marginTop: '1rem' }}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(0, 180, 216, 0.12)', border: '1px solid rgba(0, 180, 216, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                  <QrCode size={32} color="#00B4D8" />
                 </div>
-              ))}
-            </div>
+                <h4 style={{ color: '#F8FAFC', fontSize: '1.2rem', marginBottom: '0.5rem' }}>Nenhum Ponto ou Display QR Code Cadastrado</h4>
+                <p style={{ color: '#94A3B8', maxWidth: '520px', margin: '0 auto 1.5rem', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                  Cadastre totens de desembarque no aeroporto, placas de balcão em pousadas e displays de mesa em restaurantes para gerar links rastreáveis e materiais impressos.
+                </p>
+                <Button
+                  variant="gold"
+                  iconLeft={<Plus size={16} />}
+                  onClick={handleOpenNewQrChannel}
+                >
+                  Cadastrar Primeiro Local
+                </Button>
+              </div>
+            ) : (
+              <div className="qrcodes-channels-grid">
+                {qrChannels.map((ch) => (
+                  <div key={ch.id} className="qr-channel-card glass-panel">
+                    <div className="qr-preview-box">
+                      <div className="qr-code-img-frame">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ch.targetUrl)}&margin=6`}
+                          alt={`QR Code ${ch.name}`}
+                          className="qr-channel-thumb-img"
+                        />
+                      </div>
+                      <span className="qr-source-tag">Origem: {ch.sourceCode}</span>
+                    </div>
+
+                    <div className="qr-info-box">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                        <Badge variant="cyan" size="sm">{ch.locationCategory}</Badge>
+                        <div style={{ display: 'flex', gap: '0.35rem' }}>
+                          <button
+                            type="button"
+                            className="table-action-btn edit"
+                            onClick={() => handleEditQrChannel(ch)}
+                            title="Editar este ponto"
+                            aria-label="Editar"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="table-action-btn delete"
+                            onClick={() => handleDeleteQrChannel(ch.id, ch.name)}
+                            title="Excluir este ponto"
+                            aria-label="Excluir"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <h4 className="qr-channel-name">{ch.name}</h4>
+                      <p className="qr-link-copy">
+                        <code>{ch.targetUrl}</code>
+                      </p>
+
+                      <div className="qr-stats-row">
+                        <div className="qr-stat-badge">
+                          <strong>{ch.scanCount || 0}</strong>
+                          <span>Leituras</span>
+                        </div>
+                        <div className="qr-stat-badge">
+                          <strong>{ch.conversionCount || 0}</strong>
+                          <span>Vendas</span>
+                        </div>
+                        <div className="qr-stat-badge">
+                          <strong>{ch.scanCount > 0 ? ((ch.conversionCount / ch.scanCount) * 100).toFixed(1) : '0.0'}%</strong>
+                          <span>Conversão</span>
+                        </div>
+                      </div>
+
+                      <div className="qr-card-actions">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          iconLeft={<Copy size={13} />}
+                          onClick={() => handleCopyQrChannelLink(ch.targetUrl)}
+                        >
+                          Copiar Link
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="gold"
+                          iconLeft={<Printer size={13} />}
+                          onClick={() => setSelectedQrChannelForDisplay(ch)}
+                        >
+                          Imprimir Display
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -4755,6 +4868,176 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 </Button>
               </div>
             </form>
+          </Modal>
+        )}
+
+        {/* ======================================================== */}
+        {/* MODAL DE CADASTRO / EDIÇÃO DE PONTO QR CODE */}
+        {/* ======================================================== */}
+        <Modal
+          isOpen={isQrChannelModalOpen}
+          onClose={() => setIsQrChannelModalOpen(false)}
+          title={editingQrChannel?.id ? `Editar Ponto: ${editingQrChannel.name || ''}` : 'Novo Local / Display QR Code'}
+          maxWidth="600px"
+        >
+          <form onSubmit={handleSaveQrChannelSubmit} className="partner-form-modal">
+            <div className="form-grid-2">
+              <div className="form-group sm-col-span-2">
+                <label>Nome do Ponto / Estabelecimento / Totem *</label>
+                <input
+                  type="text"
+                  value={qrFormName}
+                  onChange={(e) => {
+                    setQrFormName(e.target.value);
+                    if (!editingQrChannel?.id && !qrFormSourceCode) {
+                      setQrFormSourceCode(
+                        e.target.value
+                          .toLowerCase()
+                          .normalize('NFD')
+                          .replace(/[\u0300-\u036f]/g, '')
+                          .replace(/[^a-z0-9_-]/g, '_')
+                          .replace(/_+/g, '_')
+                      );
+                    }
+                  }}
+                  placeholder="Ex: Totem Desembarque — Aeroporto Castro Pinto, Recepção — Pousada Tambaú..."
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Categoria do Ponto</label>
+                <select
+                  value={qrFormCategory}
+                  onChange={(e) => setQrFormCategory(e.target.value)}
+                >
+                  <option value="Hotelaria & Hospedagem">Hotelaria & Hospedagem</option>
+                  <option value="Aeroporto & Chegada">Aeroporto & Chegada</option>
+                  <option value="Gastronomia & Parceiros">Gastronomia & Parceiros</option>
+                  <option value="Rodoviária & Transporte">Rodoviária & Transporte</option>
+                  <option value="Pontos Turísticos & Praias">Pontos Turísticos & Praias</option>
+                  <option value="Comércio & Serviços">Comércio & Serviços</option>
+                  <option value="Geral">Outro / Geral</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Identificador de Origem (src) *</label>
+                <input
+                  type="text"
+                  value={qrFormSourceCode}
+                  onChange={(e) =>
+                    setQrFormSourceCode(
+                      e.target.value
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^a-z0-9_-]/g, '_')
+                    )
+                  }
+                  placeholder="Ex: aeroporto_jampa, pousada_tambau"
+                  required
+                />
+              </div>
+
+              <div className="form-group sm-col-span-2">
+                <span className="input-hint-sub" style={{ display: 'block', padding: '0.5rem 0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', fontFamily: 'monospace', color: '#00B4D8' }}>
+                  Link gerado: https://jampaexperience.online/?src={qrFormSourceCode || 'origem'}
+                </span>
+              </div>
+            </div>
+
+            <div className="partner-form-footer" style={{ marginTop: '1.25rem' }}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsQrChannelModalOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                variant="gold"
+                iconLeft={<Save size={15} />}
+              >
+                Salvar Local / Ponto
+              </Button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* ======================================================== */}
+        {/* MODAL DE VISUALIZAÇÃO & DOWNLOAD DE DISPLAY DO PONTO */}
+        {/* ======================================================== */}
+        {selectedQrChannelForDisplay && (
+          <Modal
+            isOpen={Boolean(selectedQrChannelForDisplay)}
+            onClose={() => setSelectedQrChannelForDisplay(null)}
+            title={`Display de Balcão & Mesa — ${selectedQrChannelForDisplay.name}`}
+            maxWidth="580px"
+          >
+            <div className="affiliate-qr-modal-content">
+              {/* Placa / Display de Balcão e Mesa */}
+              <div className="affiliate-qr-display-card glass-panel" id="printable-channel-display">
+                <div className="display-card-header">
+                  <Crown size={22} color="#F4A261" />
+                  <h3 className="display-card-brand">JAMPA EXPERIENCE</h3>
+                  <span className="display-card-tagline">GUIA TURÍSTICO OFICIAL • JOÃO PESSOA - PB</span>
+                </div>
+
+                <div className="display-card-qr-frame">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(selectedQrChannelForDisplay.targetUrl)}&margin=10`}
+                    alt={`QR Code ${selectedQrChannelForDisplay.name}`}
+                    className="display-qr-img"
+                  />
+                  <div className="display-scan-badge">
+                    <QrCode size={14} color="#00B4D8" />
+                    <span>APONTE A CÂMERA DO CELULAR</span>
+                  </div>
+                </div>
+
+                <div className="display-card-footer">
+                  <p className="display-promo-text">
+                    Desbloqueie roteiros secretos, praias paradisíacas e cupons VIP com desconto especial!
+                  </p>
+                  <div className="display-partner-badge">
+                    <span>Ponto Oficial: <strong>{selectedQrChannelForDisplay.name}</strong></span>
+                    <span className="display-partner-code">ORIGEM: {selectedQrChannelForDisplay.sourceCode}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="affiliate-qr-actions-row">
+                <Button
+                  variant="outline"
+                  size="md"
+                  iconLeft={<Copy size={16} />}
+                  onClick={() => handleCopyQrChannelLink(selectedQrChannelForDisplay.targetUrl)}
+                >
+                  Copiar Link
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  iconLeft={<Printer size={16} />}
+                  onClick={() => window.print()}
+                >
+                  Imprimir Placa
+                </Button>
+                <a
+                  href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(selectedQrChannelForDisplay.targetUrl)}&margin=10`}
+                  download={`qrcode-${selectedQrChannelForDisplay.sourceCode}.png`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-gold btn-md"
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <Upload size={16} style={{ transform: 'rotate(180deg)' }} />
+                  <span>Baixar QR Code</span>
+                </a>
+              </div>
+            </div>
           </Modal>
         )}
       </div>
@@ -6994,66 +7277,101 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         /* QR CODES */
         .qrcodes-channels-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-          gap: var(--space-lg);
+          grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+          gap: 1.25rem;
+          margin-top: 1rem;
         }
 
         .qr-channel-card {
-          padding: var(--space-lg);
-          border-radius: var(--radius-lg);
+          padding: 1.25rem;
+          border-radius: var(--radius-xl);
+          background: rgba(11, 19, 30, 0.95);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
-          gap: var(--space-md);
+          gap: 1.25rem;
           align-items: center;
+          transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .qr-channel-card:hover {
+          border-color: rgba(0, 180, 216, 0.35);
+          transform: translateY(-2px);
         }
 
         .qr-preview-box {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.4rem;
+          gap: 0.5rem;
+          flex-shrink: 0;
         }
 
-        .qr-code-svg-wrap {
+        .qr-code-img-frame {
           background: #FFFFFF;
           padding: 0.5rem;
-          border-radius: var(--radius-md);
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+          width: 96px;
+          height: 96px;
+        }
+
+        .qr-channel-thumb-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          display: block;
         }
 
         .qr-source-tag {
-          font-size: 0.625rem;
-          color: #64748B;
+          font-size: 0.6875rem;
+          color: #94A3B8;
+          font-family: monospace;
+          background: rgba(255, 255, 255, 0.05);
+          padding: 0.15rem 0.4rem;
+          border-radius: 4px;
+          max-width: 105px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .qr-info-box {
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 0.35rem;
+          gap: 0.45rem;
+          min-width: 0;
         }
 
         .qr-channel-name {
           font-family: var(--font-display);
-          font-size: 0.9375rem;
+          font-size: 1rem;
           font-weight: 800;
           color: #F8FAFC;
+          margin: 0;
+          line-height: 1.3;
+        }
+
+        .qr-link-copy {
+          margin: 0;
         }
 
         .qr-link-copy code {
-          font-size: 0.6875rem;
+          font-size: 0.725rem;
           color: #38BDF8;
           word-break: break-all;
-          background: rgba(0, 0, 0, 0.4);
-          padding: 0.15rem 0.35rem;
+          background: rgba(0, 0, 0, 0.35);
+          padding: 0.2rem 0.4rem;
           border-radius: 4px;
+          display: inline-block;
         }
 
         .qr-stats-row {
           display: flex;
-          gap: 0.4rem;
+          gap: 0.5rem;
           margin: 0.25rem 0;
         }
 
@@ -7062,24 +7380,38 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
           display: flex;
           flex-direction: column;
           align-items: center;
-          padding: 0.25rem 0.35rem;
+          padding: 0.35rem 0.4rem;
           background: rgba(255, 255, 255, 0.03);
-          border-radius: 4px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 6px;
         }
 
         .qr-stat-badge strong {
-          font-size: 0.8125rem;
+          font-size: 0.875rem;
           color: #F8FAFC;
         }
 
         .qr-stat-badge span {
-          font-size: 0.5625rem;
+          font-size: 0.625rem;
           color: #94A3B8;
         }
 
         .qr-card-actions {
           display: flex;
-          gap: 0.4rem;
+          gap: 0.5rem;
+          margin-top: 0.25rem;
+        }
+
+        @media (max-width: 600px) {
+          .qr-channel-card {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .qr-preview-box {
+            width: 100%;
+            flex-direction: row;
+            justify-content: space-between;
+          }
         }
 
         /* LAYOUT DE DICAS */

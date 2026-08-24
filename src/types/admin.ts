@@ -17,7 +17,7 @@ export interface AdminMetrics {
 export interface SystemLog {
   id: string;
   timestamp: string;
-  type: 'payment_approved' | 'webhook_received' | 'user_granted' | 'user_revoked' | 'place_created' | 'place_updated';
+  type: 'payment_approved' | 'webhook_received' | 'user_granted' | 'user_revoked' | 'place_created' | 'place_updated' | 'place_deleted' | 'general';
   title: string;
   details: string;
   payload?: any;

@@ -43,14 +43,22 @@ export function App() {
     // Rastreamento de Indicação de Afiliados (?ref=... ou ?af=...)
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const refCode = urlParams.get('ref') || urlParams.get('af') || urlParams.get('aff') || urlParams.get('src');
+      const refCode = urlParams.get('ref') || urlParams.get('af') || urlParams.get('aff');
       if (refCode) {
         const cleanRef = refCode.trim().toUpperCase();
         localStorage.setItem('jampa_affiliate_ref', cleanRef);
         adminService.trackAffiliateClick(cleanRef);
       }
+
+      // Rastreamento de Canais Físicos / Totens (?src=...)
+      const srcCode = urlParams.get('src');
+      if (srcCode) {
+        const cleanSrc = srcCode.trim().toLowerCase();
+        localStorage.setItem('jampa_src_ref', cleanSrc);
+        adminService.trackQrChannelScan(cleanSrc);
+      }
     } catch (e) {
-      console.warn('Erro ao rastrear código de afiliado:', e);
+      console.warn('Erro ao rastrear código de afiliado/canal:', e);
     }
   }, []);
 
@@ -262,8 +270,13 @@ export function App() {
           transaction.paymentMethod
         );
       }
+
+      const srcCode = localStorage.getItem('jampa_src_ref');
+      if (srcCode) {
+        adminService.recordQrChannelConversion(srcCode);
+      }
     } catch (e) {
-      console.warn('Erro ao creditar afiliado:', e);
+      console.warn('Erro ao creditar afiliado/canal:', e);
     }
 
     showToast(`🎉 Pagamento aprovado (${transaction.orderId})! Seu Acesso Vitalício está liberado.`);
