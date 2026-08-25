@@ -631,7 +631,7 @@ class AdminService {
   }
 
   /* ======================================================== */
-  /* GESTÃO DE CATEGORIAS / MODALIDADES TURÍSTICAS */
+  /* GESTÃO DE CATEGORIAS / MENU DO USUÁRIO */
   /* ======================================================== */
   public getCategories(): CategoryInfo[] {
     const data = localStorage.getItem(STORAGE_CATEGORIES_KEY);
@@ -640,41 +640,98 @@ class AdminService {
       return INITIAL_CATEGORIES;
     }
     try {
-      return JSON.parse(data);
+      let parsed: CategoryInfo[] = JSON.parse(data);
+      // Garantir que a nova categoria de emergências esteja presente caso o storage tenha cache antigo
+      const hasEmergencias = parsed.some((c) => c.id === 'emergencias');
+      if (!hasEmergencias) {
+        const emergenciasCat = INITIAL_CATEGORIES.find((c) => c.id === 'emergencias');
+        if (emergenciasCat) {
+          parsed.push(emergenciasCat);
+          localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(parsed));
+        }
+      }
+      return parsed.sort((a, b) => ((a.position || 999) - (b.position || 999)));
     } catch {
       return INITIAL_CATEGORIES;
     }
   }
 
-  public saveCategory(category: CategoryInfo): void {
+  public saveCategory(category: CategoryInfo): CategoryInfo {
     const categories = this.getCategories();
-    const index = categories.findIndex((c) => c.id === category.id);
+    const cleanCategory: CategoryInfo = {
+      ...category,
+      id: category.id || `cat-${Date.now()}`,
+      label: category.label.trim(),
+      iconName: category.iconName || 'Compass',
+      description: category.description ? category.description.trim() : '',
+      accentColor: category.accentColor || '#00B4D8',
+      position: typeof category.position === 'number' ? category.position : categories.length + 1
+    };
+
+    const index = categories.findIndex((c) => c.id === cleanCategory.id);
     if (index >= 0) {
-      categories[index] = category;
+      categories[index] = cleanCategory;
       this.addLog({
         type: 'place_updated',
-        title: `Modalidade Atualizada: ${category.label}`,
-        details: `Categoria ID ${category.id} foi alterada.`
+        title: `Categoria do Menu Atualizada: ${cleanCategory.label}`,
+        details: `Categoria ID "${cleanCategory.id}" foi alterada.`
       });
     } else {
-      categories.push(category);
+      categories.push(cleanCategory);
       this.addLog({
         type: 'place_created',
-        title: `Nova Modalidade Criada: ${category.label}`,
-        details: `Nova categoria turística adicionada.`
+        title: `Nova Categoria do Menu Criada: ${cleanCategory.label}`,
+        details: `Nova categoria "${cleanCategory.label}" adicionada ao menu.`
       });
     }
     safeSetItem(STORAGE_CATEGORIES_KEY, JSON.stringify(categories));
+    return cleanCategory;
   }
 
   public deleteCategory(categoryId: string): void {
-    const categories = this.getCategories().filter((c) => c.id !== categoryId);
-    safeSetItem(STORAGE_CATEGORIES_KEY, JSON.stringify(categories));
+    const categories = this.getCategories();
+    const target = categories.find((c) => c.id === categoryId);
+    const updated = categories.filter((c) => c.id !== categoryId);
+    safeSetItem(STORAGE_CATEGORIES_KEY, JSON.stringify(updated));
     this.addLog({
       type: 'place_updated',
-      title: `Modalidade Excluída: ${categoryId}`,
-      details: `Categoria removida do catálogo.`
+      title: `Categoria do Menu Excluída: ${target ? target.label : categoryId}`,
+      details: `Categoria removida do menu do usuário.`
     });
+  }
+
+  public moveCategoryPosition(index: number, direction: 'up' | 'down'): CategoryInfo[] {
+    const categories = [...this.getCategories()];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= categories.length) return categories;
+
+    const [moved] = categories.splice(index, 1);
+    categories.splice(targetIndex, 0, moved);
+
+    // Reatribuir posições sequenciais
+    const reindexed = categories.map((cat, idx) => ({
+      ...cat,
+      position: idx + 1
+    }));
+
+    safeSetItem(STORAGE_CATEGORIES_KEY, JSON.stringify(reindexed));
+    this.addLog({
+      type: 'place_updated',
+      title: `Ordem das Categorias Atualizada`,
+      details: `Categoria "${moved.label}" movida para posição #${targetIndex + 1}.`
+    });
+
+    return reindexed;
+  }
+
+  public resetCategories(): CategoryInfo[] {
+    safeSetItem(STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
+    this.addLog({
+      type: 'place_updated',
+      title: `Categorias Restauradas`,
+      details: `Lista padrão de categorias do menu restaurada.`
+    });
+    return INITIAL_CATEGORIES;
   }
 
   /* ======================================================== */
@@ -1060,7 +1117,8 @@ class AdminService {
       else if (cat === 'cultura') topicIds = ['cultura'];
       else if (cat === 'vida-noturna') topicIds = ['vida-noturna'];
       else if (cat === 'dicas') topicIds = ['servicos'];
-      else topicIds = ['gastronomia'];
+      else if (cat === 'emergencias') topicIds = ['servicos', 'emergencias'];
+      else topicIds = [cat || 'gastronomia'];
     }
 
     // 3. Normalização da Modalidade (Preserva modalityName ou infere de categoryId)
@@ -1085,7 +1143,8 @@ class AdminService {
       else if (cat === 'cultura') modalityName = 'Patrimônio Histórico';
       else if (cat === 'vida-noturna') modalityName = 'Casa de Shows / Forró';
       else if (cat === 'dicas') modalityName = 'Serviços';
-      else modalityName = 'Praias';
+      else if (cat === 'emergencias') modalityName = 'Emergência 24h';
+      else modalityName = place.categoryLabel || 'Experiência';
     }
 
     return {

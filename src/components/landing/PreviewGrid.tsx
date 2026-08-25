@@ -124,6 +124,9 @@ function isPlaceInTopic(place: Place, topic: Topic): boolean {
   if (topicIdNorm === 'compras' && catNorm === 'compras') return true;
   if (topicIdNorm === 'cultura' && catNorm === 'cultura') return true;
   if (topicIdNorm === 'vida-noturna' && catNorm === 'vida-noturna') return true;
+  if (topicIdNorm === 'saude' && (catNorm === 'emergencias' || catNorm === 'saude')) return true;
+  if (topicIdNorm === 'emergencias' && catNorm === 'emergencias') return true;
+  if (topicIdNorm === 'servicos' && (catNorm === 'emergencias' || catNorm === 'servicos')) return true;
 
   return false;
 }

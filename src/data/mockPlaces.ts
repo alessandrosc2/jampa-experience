@@ -933,5 +933,239 @@ export const MOCK_PLACES: Place[] = [
       { title: 'Show das Águas à Noite', description: 'A fonte dançante com jatos coloridos no meio da lagoa funciona todas as noites.', badge: 'Show Noturno', isPremiumOnly: true }
     ],
     reviews: []
+  },
+
+  // ==========================================
+  // SERVIÇOS DE EMERGÊNCIA & UTILIDADES 24H
+  // ==========================================
+  {
+    id: 'hospital-trauma-joao-pessoa',
+    name: 'Hospital de Emergência e Trauma Senador Humberto Lucena',
+    slogan: 'Principal complexo hospitalar de urgência e trauma 24 horas da Paraíba',
+    categoryId: 'emergencias',
+    categoryLabel: 'Emergências 24h',
+    neighborhood: 'Pedro Gondim / BR-230',
+    rating: 4.8,
+    reviewCount: 512,
+    featuredImage: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80',
+      'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1000&q=80'
+    ],
+    publicTeaser: 'Hospital de referência estadual para urgências e emergências médicas de alta complexidade com plantão 24h ininterrupto.',
+    fullDescription: 'O Hospital Estadual de Emergência e Trauma Senador Humberto Lucena é a maior unidade pública de pronto atendimento do estado, localizado às margens da BR-230, com suporte para ortopedia, cirurgia geral, neurologia e queimados.',
+    isFeatured: true,
+    priceLevel: 'economico',
+    openingHours: 'Aberto 24h (Plantão Ininterrupto)',
+    tags: ['Hospital 24h', 'Emergência Médica', 'UTI', 'Trauma', 'Público'],
+    coordinates: { lat: -7.1082, lng: -34.8698 },
+    address: 'Av. Orestes Lisboa, s/n - Pedro Gondim, João Pessoa - PB (BR-230)',
+    phone: '(83) 3216-5700',
+    amenities: { parking: true, accessibility: true, familyFriendly: true, petFriendly: false, cardPayment: false, pixPayment: false },
+    tips: [
+      { title: 'Acesso Rápido pela BR-230', description: 'O acesso para ambulâncias e emergências particulares é direto pela marginal da BR-230 sentido Cabedelo.', badge: 'Emergência 24h', isPremiumOnly: false },
+      { title: 'Documentos Necessários', description: 'Tenha em mãos documento oficial com foto e Cartão SUS para agilizar a triagem no balcão de acolhimento.', badge: 'Dica Importante', isPremiumOnly: false }
+    ],
+    reviews: []
+  },
+  {
+    id: 'hospital-memorial-sao-francisco',
+    name: 'Hospital Memorial São Francisco (Emergência 24h)',
+    slogan: 'Pronto atendimento particular e convênios com cardiologia e emergência médica 24h',
+    categoryId: 'emergencias',
+    categoryLabel: 'Emergências 24h',
+    neighborhood: 'Torre / Centro',
+    rating: 4.9,
+    reviewCount: 388,
+    featuredImage: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1000&q=80'
+    ],
+    publicTeaser: 'Um dos hospitais privados mais tradicionais de João Pessoa com pronto-socorro adulto 24h, UTI moderna e exames de imagem.',
+    fullDescription: 'Referência em atendimento particular e planos de saúde em João Pessoa, o Memorial São Francisco oferece atendimento ágil com equipe multidisciplinar de plantão, centro de diagnóstico completo e emergência cardiológica.',
+    isFeatured: true,
+    priceLevel: 'alto',
+    openingHours: 'Aberto 24 horas',
+    tags: ['Hospital Particular', 'Pronto Atendimento 24h', 'Cardiologia', 'Convênios'],
+    coordinates: { lat: -7.1265, lng: -34.8789 },
+    address: 'Av. Ministro José Américo de Almeida, 1450 - Torre, João Pessoa - PB',
+    phone: '(83) 3133-3000',
+    amenities: { parking: true, accessibility: true, familyFriendly: true, petFriendly: false, cardPayment: true, pixPayment: true },
+    tips: [
+      { title: 'Emergência Particular & Planos', description: 'Atende Unimed, Bradesco Saúde, Amil, SulAmérica, Cassi e consultas particulares com triagem rápida.', badge: 'Convênios', isPremiumOnly: false }
+    ],
+    reviews: []
+  },
+  {
+    id: 'upa-oceania-bessa',
+    name: 'UPA Oceania 24h (Bessa / Jardim Oceania)',
+    slogan: 'Unidade de Pronto Atendimento 24 horas na orla norte de João Pessoa',
+    categoryId: 'emergencias',
+    categoryLabel: 'Emergências 24h',
+    neighborhood: 'Bessa / Jardim Oceania',
+    rating: 4.7,
+    reviewCount: 295,
+    featuredImage: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80'
+    ],
+    publicTeaser: 'Pronto atendimento público para casos de urgência médica, febre alta, suturas, mal-estar e primeiros socorros na orla.',
+    fullDescription: 'A UPA Oceania atende a população e turistas da região de Manaíra, Bessa, Intermares e Tambaú com equipe de médicos clínicos, pediatras, enfermagem e sala de estabilização 24 horas por dia.',
+    isFeatured: false,
+    priceLevel: 'economico',
+    openingHours: 'Aberto 24h todos os dias',
+    tags: ['UPA 24h', 'SUS', 'Pronto Atendimento', 'Orla Norte', 'Gratuito'],
+    coordinates: { lat: -7.0856, lng: -34.8389 },
+    address: 'Av. Flávio Ribeiro Coutinho, 70 - Jardim Oceania / Bessa, João Pessoa - PB',
+    phone: '(83) 3214-3800',
+    amenities: { parking: true, accessibility: true, familyFriendly: true, petFriendly: false, cardPayment: false, pixPayment: false },
+    tips: [
+      { title: 'Localização Próxima aos Shoppings', description: 'Fica situada no início do Retão de Manaíra / Jardim Oceania, de fácil acesso de carro ou aplicativo.', badge: 'Fácil Acesso', isPremiumOnly: false }
+    ],
+    reviews: []
+  },
+  {
+    id: 'drogasil-24h-epitacio',
+    name: 'Drogasil 24h - Av. Epitácio Pessoa',
+    slogan: 'Drogaria completa com atendimento farmacêutico e conveniência 24 horas na principal avenida',
+    categoryId: 'emergencias',
+    categoryLabel: 'Emergências 24h',
+    neighborhood: 'Tambauzinho / Epitácio',
+    rating: 4.9,
+    reviewCount: 340,
+    featuredImage: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1000&q=80'
+    ],
+    publicTeaser: 'Farmácia 24h com amplo estacionamento privativo, medicamentos de referência, dermocosméticos e delivery noturno.',
+    fullDescription: 'Localizada na artéria principal que liga o centro à orla, a Drogasil Epitácio funciona 24h ininterruptamente com farmacêutico de plantão para aplicação de injetáveis, aferição de pressão e medicamentos controlados.',
+    isFeatured: true,
+    priceLevel: 'moderado',
+    openingHours: 'Aberto 24 horas (Balcão & Estacionamento)',
+    tags: ['Farmácia 24h', 'Medicamentos', 'Conveniência', 'Estacionamento Próprio'],
+    coordinates: { lat: -7.1218, lng: -34.8512 },
+    address: 'Av. Presidente Epitácio Pessoa, 2151 - Tambauzinho, João Pessoa - PB',
+    phone: '(83) 3224-8800',
+    whatsapp: '83993595124',
+    amenities: { parking: true, accessibility: true, familyFriendly: true, petFriendly: true, cardPayment: true, pixPayment: true },
+    tips: [
+      { title: 'Plantão Noturno Seguro', description: 'Conta com estacionamento iluminado e segurança na porta durante toda a madrugada.', badge: 'Plantão Seguro', isPremiumOnly: false }
+    ],
+    reviews: []
+  },
+  {
+    id: 'pague-menos-24h-tambau',
+    name: 'Farmácia Pague Menos 24h - Tambaú',
+    slogan: 'Farmácia 24h a passos do calçadão de Tambaú e da Feirinha de Artesanato',
+    categoryId: 'emergencias',
+    categoryLabel: 'Emergências 24h',
+    neighborhood: 'Tambaú',
+    rating: 4.8,
+    reviewCount: 280,
+    featuredImage: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1000&q=80'
+    ],
+    publicTeaser: 'Ideal para quem está hospedado na orla de Tambaú ou Cabo Branco e precisa de remédios ou conveniências de madrugada.',
+    fullDescription: 'Drogaria localizada estrategicamente na orla de Tambaú, oferecendo linha completa de medicamentos, protetores solares, itens de primeiros socorros, produtos infantis e serviço Clinic Farma.',
+    isFeatured: false,
+    priceLevel: 'moderado',
+    openingHours: 'Aberto 24 horas',
+    tags: ['Farmácia 24h', 'Orla de Tambaú', 'Medicamentos', 'Primeiros Socorros'],
+    coordinates: { lat: -7.1156, lng: -34.8252 },
+    address: 'Av. Olinda, 102 - Tambaú, João Pessoa - PB',
+    phone: '(83) 3247-4500',
+    amenities: { parking: true, accessibility: true, familyFriendly: true, petFriendly: true, cardPayment: true, pixPayment: true },
+    tips: [
+      { title: 'Atendimento a Pé na Orla', description: 'A apenas 2 quadras da beira-mar de Tambaú, permitindo ir a pé com tranquilidade.', badge: 'Orla de Jampa', isPremiumOnly: false }
+    ],
+    reviews: []
+  },
+  {
+    id: 'teletaxi-joao-pessoa-24h',
+    name: 'Teletáxi & Coopertáxi João Pessoa 24h',
+    slogan: 'Central oficial de rádio táxi com atendimento 24h, agendamento de corridas e aeroporto',
+    categoryId: 'emergencias',
+    categoryLabel: 'Emergências 24h',
+    neighborhood: 'Toda João Pessoa / Aeroporto',
+    rating: 4.9,
+    reviewCount: 460,
+    featuredImage: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1000&q=80'
+    ],
+    publicTeaser: 'Serviço de táxi 24 horas para translados de emergência, saídas de madrugada, aeroporto Castro Pinto e rodoviária.',
+    fullDescription: 'Central unificada de táxis credenciados de João Pessoa com monitoramento GPS, motoristas profissionais e atendimento imediato por telefone ou WhatsApp a qualquer hora do dia ou da noite.',
+    isFeatured: true,
+    priceLevel: 'moderado',
+    openingHours: '24 horas ininterrupto',
+    tags: ['Táxi 24h', 'Translado Aeroporto', 'Transporte', 'Emergência', 'Madrugada'],
+    coordinates: { lat: -7.115, lng: -34.825 },
+    address: 'Atendimento em toda a Região Metropolitana de João Pessoa - PB',
+    phone: '(83) 3244-4000',
+    whatsapp: '83999814000',
+    amenities: { parking: true, accessibility: true, familyFriendly: true, petFriendly: true, cardPayment: true, pixPayment: true },
+    tips: [
+      { title: 'Chame direto pelo WhatsApp', description: 'Envie sua localização pelo WhatsApp para receber o prefixo do veículo e o tempo estimado de chegada.', badge: 'Atendimento Rápido', isPremiumOnly: false }
+    ],
+    reviews: []
+  },
+  {
+    id: 'hospital-veterinario-vet-24h',
+    name: 'Hospital Veterinário & Pronto-Socorro Vet 24h',
+    slogan: 'Emergência veterinária ininterrupta com UTI, cirurgia e exames laboratoriais na orla',
+    categoryId: 'emergencias',
+    categoryLabel: 'Emergências 24h',
+    neighborhood: 'Manaíra',
+    rating: 4.9,
+    reviewCount: 310,
+    featuredImage: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1000&q=80'
+    ],
+    publicTeaser: 'Pronto-socorro veterinário 24 horas especializado em cães e gatos, com internação, oxigenoterapia e raio-x.',
+    fullDescription: 'Clínica veterinária de emergência em Manaíra com médicos veterinários de plantão durante toda a madrugada, preparada para atender intoxicações, traumas, partos emergenciais e procedimentos cirúrgicos urgentes.',
+    isFeatured: false,
+    priceLevel: 'moderado',
+    openingHours: 'Plantão Veterinário 24h',
+    tags: ['Veterinário 24h', 'Pet Friendly', 'Emergência Animal', 'Cirurgia Vet', 'Manaíra'],
+    coordinates: { lat: -7.1023, lng: -34.8341 },
+    address: 'Av. Senador Ruy Carneiro, 650 - Manaíra, João Pessoa - PB',
+    phone: '(83) 3247-9000',
+    whatsapp: '83988229000',
+    amenities: { parking: true, accessibility: true, familyFriendly: true, petFriendly: true, cardPayment: true, pixPayment: true },
+    tips: [
+      { title: 'Avise pelo WhatsApp antes de ir', description: 'Para casos graves com necessidade de oxigênio ou maca, avise a equipe 10 minutos antes para prepararem o leito.', badge: 'Emergência Vet', isPremiumOnly: false }
+    ],
+    reviews: []
+  },
+  {
+    id: 'chaveiro-24h-orla-jampa',
+    name: 'Chaveiro 24h Orla & Auto João Pessoa',
+    slogan: 'Socorro móvel 24h para abertura de portas residenciais, cofres e veículos na orla',
+    categoryId: 'emergencias',
+    categoryLabel: 'Emergências 24h',
+    neighborhood: 'Tambaú / Cabo Branco / Manaíra',
+    rating: 4.9,
+    reviewCount: 220,
+    featuredImage: 'https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=1000&q=80'
+    ],
+    publicTeaser: 'Atendimento móvel rápido com motolink para aberturas emergenciais de fechaduras residenciais, hotéis, flats e carros.',
+    fullDescription: 'Especialista em chaves codificadas, abertura de portas travadas sem danificar a fechadura, cópias urgentes e atendimento emergencial a qualquer horário da madrugada em hotéis, pousadas e condomínios de Jampa.',
+    isFeatured: false,
+    priceLevel: 'moderado',
+    openingHours: 'Plantão 24h móvel',
+    tags: ['Chaveiro 24h', 'Socorro Móvel', 'Abertura de Carros', 'Chaves Codificadas'],
+    coordinates: { lat: -7.1147, lng: -34.8236 },
+    address: 'Atendimento móvel em toda a orla e Grande João Pessoa',
+    phone: '(83) 99123-4567',
+    whatsapp: '83991234567',
+    amenities: { parking: true, accessibility: true, familyFriendly: true, petFriendly: true, cardPayment: true, pixPayment: true },
+    tips: [
+      { title: 'Tempo Médio de Chegada', description: 'Na orla (Tambaú, Cabo Branco, Manaíra e Bessa) o tempo médio de chegada de moto é de 15 a 25 minutos.', badge: 'Atendimento Rápido', isPremiumOnly: false }
+    ],
+    reviews: []
   }
 ];

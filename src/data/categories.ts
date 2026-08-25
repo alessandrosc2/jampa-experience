@@ -83,6 +83,15 @@ export const CATEGORIES: CategoryInfo[] = [
     label: 'Dicas & Segredos',
     iconName: 'Lightbulb',
     description: 'Tábua de marés, horários estratégicos e recomendações dos nativos',
-    accentColor: '#10B981'
+    accentColor: '#10B981',
+    position: 12
+  },
+  {
+    id: 'emergencias',
+    label: 'Emergências 24h',
+    iconName: 'HeartPulse',
+    description: 'Hospitais, UPAs, farmácias 24h, táxis, chaveiros e veterinários de plantão',
+    accentColor: '#EF4444',
+    position: 13
   }
 ];

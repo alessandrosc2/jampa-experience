@@ -18,7 +18,20 @@ import {
   Car,
   Palmtree,
   Ship,
-  Sparkle
+  Sparkle,
+  HeartPulse,
+  ShieldAlert,
+  PhoneCall,
+  Phone,
+  Stethoscope,
+  Key,
+  Wrench,
+  AlertCircle,
+  Scissors,
+  Activity,
+  Shield,
+  Flame,
+  Crosshair
 } from 'lucide-react';
 import { CategoryId, CategoryInfo } from '../../types/place';
 import { CATEGORIES as DEFAULT_CATEGORIES } from '../../data/categories';
@@ -46,7 +59,20 @@ const iconMap: Record<string, React.ReactNode> = {
   Car: <Car size={18} />,
   Palmtree: <Palmtree size={18} />,
   Ship: <Ship size={18} />,
-  Sparkles: <Sparkles size={18} />
+  Sparkles: <Sparkles size={18} />,
+  HeartPulse: <HeartPulse size={18} />,
+  ShieldAlert: <ShieldAlert size={18} />,
+  PhoneCall: <PhoneCall size={18} />,
+  Phone: <Phone size={18} />,
+  Stethoscope: <Stethoscope size={18} />,
+  Key: <Key size={18} />,
+  Wrench: <Wrench size={18} />,
+  AlertCircle: <AlertCircle size={18} />,
+  Scissors: <Scissors size={18} />,
+  Activity: <Activity size={18} />,
+  Shield: <Shield size={18} />,
+  Flame: <Flame size={18} />,
+  Crosshair: <Crosshair size={18} />
 };
 
 export const CategoryNav: React.FC<CategoryNavProps> = ({

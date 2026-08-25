@@ -10,7 +10,9 @@ export type CategoryId =
   | 'compras'
   | 'cultura'
   | 'vida-noturna'
-  | 'dicas';
+  | 'dicas'
+  | 'emergencias'
+  | (string & {});
 
 export type PriceLevel = 'economico' | 'moderado' | 'alto' | 'luxo';
 

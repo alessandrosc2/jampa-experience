@@ -4,6 +4,7 @@ import {
   Crown,
   LogOut,
   LayoutDashboard,
+  LayoutGrid,
   MapPin,
   Sparkles,
   Users,
@@ -54,10 +55,93 @@ import {
   Share2,
   Printer,
   Copy,
-  RotateCcw
+  RotateCcw,
+  HeartPulse,
+  ShieldAlert,
+  PhoneCall,
+  Stethoscope,
+  Key,
+  Wrench,
+  AlertCircle,
+  Scissors,
+  Activity,
+  Flame,
+  Crosshair,
+  Umbrella,
+  UtensilsCrossed,
+  GlassWater,
+  Coffee,
+  Hotel,
+  Sunset,
+  ShoppingBag,
+  Landmark,
+  Moon,
+  Lightbulb,
+  Car,
+  Palmtree,
+  Ship,
+  Trees
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Badge } from '../common/Badge';
+
+const categoryIconMap: Record<string, React.ReactNode> = {
+  Umbrella: <Umbrella size={18} />,
+  UtensilsCrossed: <UtensilsCrossed size={18} />,
+  GlassWater: <GlassWater size={18} />,
+  Coffee: <Coffee size={18} />,
+  Hotel: <Hotel size={18} />,
+  Compass: <Compass size={18} />,
+  Camera: <Camera size={18} />,
+  Sunset: <Sunset size={18} />,
+  ShoppingBag: <ShoppingBag size={18} />,
+  Landmark: <Landmark size={18} />,
+  Moon: <Moon size={18} />,
+  Lightbulb: <Lightbulb size={18} />,
+  Trees: <Trees size={18} />,
+  Car: <Car size={18} />,
+  Palmtree: <Palmtree size={18} />,
+  Ship: <Ship size={18} />,
+  Sparkles: <Sparkles size={18} />,
+  HeartPulse: <HeartPulse size={18} />,
+  ShieldAlert: <ShieldAlert size={18} />,
+  PhoneCall: <PhoneCall size={18} />,
+  Phone: <Phone size={18} />,
+  Stethoscope: <Stethoscope size={18} />,
+  Key: <Key size={18} />,
+  Wrench: <Wrench size={18} />,
+  AlertCircle: <AlertCircle size={18} />,
+  Scissors: <Scissors size={18} />,
+  Activity: <Activity size={18} />,
+  Shield: <Shield size={18} />,
+  Flame: <Flame size={18} />,
+  Crosshair: <Crosshair size={18} />
+};
+
+const AVAILABLE_CATEGORY_ICONS = [
+  { name: 'HeartPulse', label: 'Emergência & Saúde' },
+  { name: 'ShieldAlert', label: 'Segurança & Plantão' },
+  { name: 'PhoneCall', label: 'Telefones & Táxi' },
+  { name: 'Stethoscope', label: 'Médico & Clínica' },
+  { name: 'Key', label: 'Chaveiro & Acessos' },
+  { name: 'Wrench', label: 'Socorro & Manutenção' },
+  { name: 'Umbrella', label: 'Praias & Enseadas' },
+  { name: 'UtensilsCrossed', label: 'Gastronomia & Sabores' },
+  { name: 'GlassWater', label: 'Bares & Lounges' },
+  { name: 'Coffee', label: 'Cafés & Bistrôs' },
+  { name: 'Hotel', label: 'Hotéis & Pousadas' },
+  { name: 'Compass', label: 'Passeios & Náutica' },
+  { name: 'Camera', label: 'Mirantes & Fotos' },
+  { name: 'Sunset', label: 'Pôr do Sol' },
+  { name: 'ShoppingBag', label: 'Compras & Feiras' },
+  { name: 'Landmark', label: 'Cultura & História' },
+  { name: 'Moon', label: 'Noite & Entretenimento' },
+  { name: 'Lightbulb', label: 'Dicas & Segredos' },
+  { name: 'Car', label: 'Transporte & Carros' },
+  { name: 'Palmtree', label: 'Coqueirais & Natureza' },
+  { name: 'Ship', label: 'Barcos & Catamarãs' },
+  { name: 'Sparkles', label: 'Destaques VIP' }
+];
 import { Button } from '../common/Button';
 import { Place, CategoryInfo, SecretTip, PriceLevel, CategoryId, PartnerLevel, PlaceImage, Partner, PartnershipLevel, Modality, Topic, Neighborhood } from '../../types/place';
 import { Itinerary } from '../../types/itinerary';
@@ -149,6 +233,15 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [qrFormName, setQrFormName] = useState('');
   const [qrFormCategory, setQrFormCategory] = useState('Hotelaria & Hospedagem');
   const [qrFormSourceCode, setQrFormSourceCode] = useState('');
+
+  // Estado de Categorias do Menu do Usuário
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Partial<CategoryInfo> | null>(null);
+  const [categoryFormId, setCategoryFormId] = useState('');
+  const [categoryFormLabel, setCategoryFormLabel] = useState('');
+  const [categoryFormDesc, setCategoryFormDesc] = useState('');
+  const [categoryFormIcon, setCategoryFormIcon] = useState('Compass');
+  const [categoryFormColor, setCategoryFormColor] = useState('#00B4D8');
 
   // Estado de Bairros & Dicas
   const [isNeighborhoodModalOpen, setIsNeighborhoodModalOpen] = useState(false);
@@ -1045,6 +1138,90 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   };
 
   /* ======================================================== */
+  /* OPERAÇÕES DE CATEGORIAS DO MENU DO USUÁRIO */
+  /* ======================================================== */
+  const handleOpenNewCategory = () => {
+    setEditingCategory(null);
+    setCategoryFormId('');
+    setCategoryFormLabel('');
+    setCategoryFormDesc('');
+    setCategoryFormIcon('Compass');
+    setCategoryFormColor('#00B4D8');
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleEditCategory = (cat: CategoryInfo) => {
+    setEditingCategory(cat);
+    setCategoryFormId(cat.id);
+    setCategoryFormLabel(cat.label);
+    setCategoryFormDesc(cat.description || '');
+    setCategoryFormIcon(cat.iconName || 'Compass');
+    setCategoryFormColor(cat.accentColor || '#00B4D8');
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleSaveCategorySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryFormLabel.trim()) {
+      showNotification('Digite o nome da categoria.');
+      return;
+    }
+
+    const slug =
+      categoryFormId.trim() ||
+      categoryFormLabel
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+
+    const catToSave: CategoryInfo = {
+      id: slug as CategoryId,
+      label: categoryFormLabel.trim(),
+      description: categoryFormDesc.trim(),
+      iconName: categoryFormIcon,
+      accentColor: categoryFormColor,
+      position: editingCategory?.position !== undefined ? editingCategory.position : categories.length + 1
+    };
+
+    adminService.saveCategory(catToSave);
+    setCategories(adminService.getCategories());
+    onPlacesUpdated();
+    syncLocalData();
+    setIsCategoryModalOpen(false);
+    showNotification(`✅ Categoria "${catToSave.label}" salva no menu com sucesso!`);
+  };
+
+  const handleDeleteCategory = (catId: string, label: string) => {
+    if (window.confirm(`Deseja realmente excluir a categoria "${label}" do menu do usuário?`)) {
+      adminService.deleteCategory(catId);
+      setCategories(adminService.getCategories());
+      onPlacesUpdated();
+      syncLocalData();
+      showNotification(`🗑️ Categoria "${label}" excluída do menu.`);
+    }
+  };
+
+  const handleMoveCategoryOrder = (index: number, direction: 'up' | 'down') => {
+    const updated = adminService.moveCategoryPosition(index, direction);
+    setCategories(updated);
+    onPlacesUpdated();
+    syncLocalData();
+    showNotification('Ordem das categorias atualizada no menu do usuário!');
+  };
+
+  const handleResetCategoriesOrder = () => {
+    if (window.confirm('Deseja restaurar as categorias padrão do menu do usuário?')) {
+      const reset = adminService.resetCategories();
+      setCategories(reset);
+      onPlacesUpdated();
+      syncLocalData();
+      showNotification('Categorias padrão restauradas com sucesso!');
+    }
+  };
+
+  /* ======================================================== */
   /* OPERAÇÕES DE MODALIDADES (TIPO DE ESTABELECIMENTO) */
   /* ======================================================== */
   const handleOpenNewModality = () => {
@@ -1316,11 +1493,11 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
   const tabsList: { id: AdminTab; label: string; icon: React.ReactNode; badge?: number | string }[] = [
     { id: 'places', label: 'Locais & Atrações', icon: <MapPin size={17} />, badge: allPlaces.length },
+    { id: 'categories', label: 'Categorias do Menu', icon: <LayoutGrid size={17} />, badge: categories.length },
     { id: 'neighborhoods', label: 'Bairros & Dicas', icon: <MapPin size={17} />, badge: neighborhoods.length },
     { id: 'topics', label: 'Tópicos & Seções', icon: <SlidersHorizontal size={17} />, badge: topics.length },
     { id: 'photos', label: 'Fotos & Galeria', icon: <Camera size={17} /> },
     { id: 'partners', label: 'Parceiros & Cupons', icon: <Handshake size={17} />, badge: partners.length },
-    { id: 'categories', label: 'Modalidades', icon: <Layers size={17} />, badge: modalities.length },
     { id: 'qrcodes', label: 'Distribuição QR Code', icon: <QrCode size={17} />, badge: qrChannels.length },
     { id: 'tips', label: 'Dicas dos Locais', icon: <Sparkles size={17} /> },
     { id: 'itineraries', label: 'Roteiros', icon: <Compass size={17} />, badge: itineraries.length },
@@ -1901,6 +2078,29 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                             {editingPlace.modalityName}
                           </option>
                         )}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Categoria Principal no Menu do Usuário *</label>
+                    <select
+                      value={editingPlace.categoryId || 'praias'}
+                      onChange={(e) => {
+                        const cId = e.target.value;
+                        const foundCat = categories.find((c) => c.id === cId);
+                        setEditingPlace({
+                          ...editingPlace,
+                          categoryId: cId as CategoryId,
+                          categoryLabel: foundCat ? foundCat.label : editingPlace.categoryLabel || 'Praias & Enseadas'
+                        });
+                      }}
+                      required
+                    >
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -3362,104 +3562,140 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         )}
 
         {/* ======================================================== */}
-        {/* ABA: MODALIDADES DO CATÁLOGO (TIPOS DE ESTABELECIMENTO) */}
+        {/* ABA: GESTÃO DE CATEGORIAS DO MENU DO USUÁRIO */}
         {/* ======================================================== */}
         {activeTab === 'categories' && (
           <div className="admin-tab-content">
-            {!isEditingModality ? (
-              <>
-                <div className="admin-toolbar">
-                  <div>
-                    <h4>Modalidades do Catálogo ({modalities.length})</h4>
-                    <p className="admin-sec-sub">
-                      Classificação visível no topo do card do estabelecimento (ex: Praias, Restaurante, Bar, Quiosque de Praia, Salão de Beleza).
-                    </p>
-                  </div>
-                  <Button
-                    variant="gold"
-                    size="sm"
-                    iconLeft={<Plus size={16} />}
-                    onClick={handleOpenNewModality}
+            <div className="admin-toolbar">
+              <div>
+                <h4>Categorias & Menu Principal do Usuário ({categories.length})</h4>
+                <p className="admin-sec-sub">
+                  Gerencie, renomeie, reordene, crie e exclua as pílulas de navegação exibidas na barra superior do site para os visitantes e membros.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  iconLeft={<RotateCcw size={15} />}
+                  onClick={handleResetCategoriesOrder}
+                  title="Restaurar lista de categorias padrão"
+                >
+                  Restaurar Padrão
+                </Button>
+                <Button
+                  variant="gold"
+                  size="sm"
+                  iconLeft={<Plus size={16} />}
+                  onClick={handleOpenNewCategory}
+                >
+                  + NOVA CATEGORIA
+                </Button>
+              </div>
+            </div>
+
+            {/* Alerta explicativo de ordenação em tempo real */}
+            <div className="topic-rule-alert glass-panel">
+              <Sparkles size={18} color="#00B4D8" />
+              <div>
+                <strong>Ordem de Exibição no Topo:</strong> As categorias abaixo correspondem exatamente à barra horizontal do menu no site. Utilize as setas <strong>⬆️</strong> e <strong>⬇️</strong> para reposicionar (por exemplo, destacar <strong>Emergências 24h</strong> ou <strong>Gastronomia</strong> no início da lista).
+              </div>
+            </div>
+
+            {/* Listagem Ordenável de Categorias do Menu */}
+            <div className="admin-topics-list">
+              {categories.map((cat, index) => {
+                const linkedPlaces = allPlaces.filter((p) => p.categoryId === cat.id);
+
+                return (
+                  <div
+                    key={cat.id}
+                    className="admin-topic-item glass-panel"
+                    style={{ borderLeft: `4px solid ${cat.accentColor || '#00B4D8'}` }}
                   >
-                    Nova Modalidade
-                  </Button>
-                </div>
-
-                <div className="categories-grid-cards">
-                  {modalities.map((mod) => (
-                    <div
-                      key={mod.id}
-                      className="category-admin-card glass-panel"
-                      style={{ borderLeft: '4px solid #00B4D8' }}
-                    >
-                      <div className="cat-card-top">
-                        <span className="cat-color-indicator" style={{ backgroundColor: '#00B4D8' }} />
-                        <h4 className="cat-card-title">{mod.name}</h4>
-                        <div className="cat-card-actions">
-                          <button
-                            className="action-icon-btn edit"
-                            onClick={() => handleEditModality(mod)}
-                            title="Editar Modalidade"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                          <button
-                            className="action-icon-btn delete"
-                            onClick={() => handleDeleteModality(mod.id, mod.name)}
-                            title="Excluir Modalidade"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
+                    <div className="topic-item-left">
+                      <span className="topic-position-badge">#{cat.position || index + 1}</span>
+                      
+                      <div
+                        className="cat-icon-box"
+                        style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '50%',
+                          background: `${cat.accentColor}20`,
+                          color: cat.accentColor || '#00B4D8',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        {categoryIconMap[cat.iconName] || <Compass size={18} />}
                       </div>
-                      <p className="cat-card-desc">
-                        {mod.description || 'Tipo de estabelecimento turístico em João Pessoa.'}
-                      </p>
-                      <span className="cat-id-code">Código: {mod.slug || mod.id}</span>
+
+                      <div className="topic-item-info">
+                        <div className="topic-item-header">
+                          <h4 className="topic-item-title">{cat.label}</h4>
+                          <span className="topic-item-slug">/{cat.id}</span>
+                          <span
+                            className="topic-accent-dot"
+                            style={{ backgroundColor: cat.accentColor || '#00B4D8' }}
+                            title={`Cor: ${cat.accentColor}`}
+                          />
+                        </div>
+                        <p className="topic-item-desc">{cat.description || 'Sem descrição cadastrada.'}</p>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <form className="admin-form glass-panel" onSubmit={handleSaveModality}>
-                <div className="form-header-row">
-                  <h4>{editingModality.id ? `Editar: ${editingModality.name}` : 'Nova Modalidade'}</h4>
-                  <button type="button" className="close-form-btn" onClick={() => setIsEditingModality(false)}>
-                    <X size={18} />
-                  </button>
-                </div>
 
-                <div className="form-group">
-                  <label>Nome da Modalidade *</label>
-                  <input
-                    type="text"
-                    value={editingModality.name || ''}
-                    onChange={(e) => setEditingModality({ ...editingModality, name: e.target.value })}
-                    placeholder="Ex: Praias, Restaurante, Bar, Quiosque de Praia, Salão de Beleza..."
-                    required
-                  />
-                </div>
+                    <div className="topic-item-right">
+                      <span className="topic-places-badge">
+                        <MapPin size={12} />
+                        <span>{linkedPlaces.length} locais vinculados</span>
+                      </span>
 
-                <div className="form-group">
-                  <label>Descrição da Modalidade</label>
-                  <input
-                    type="text"
-                    value={editingModality.description || ''}
-                    onChange={(e) => setEditingModality({ ...editingModality, description: e.target.value })}
-                    placeholder="Breve explicação do tipo de local ou serviço"
-                  />
-                </div>
+                      {/* Controles de Reordenação ⬆️ / ⬇️ */}
+                      <div className="topic-reorder-buttons">
+                        <button
+                          type="button"
+                          className="reorder-arrow-btn"
+                          disabled={index === 0}
+                          onClick={() => handleMoveCategoryOrder(index, 'up')}
+                          title="Mover para a Esquerda / Cima"
+                        >
+                          ⬆️
+                        </button>
+                        <button
+                          type="button"
+                          className="reorder-arrow-btn"
+                          disabled={index === categories.length - 1}
+                          onClick={() => handleMoveCategoryOrder(index, 'down')}
+                          title="Mover para a Direita / Baixo"
+                        >
+                          ⬇️
+                        </button>
+                      </div>
 
-                <div className="form-actions-row">
-                  <Button type="button" variant="outline" onClick={() => setIsEditingModality(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" variant="gold" iconLeft={<Save size={16} />}>
-                    Salvar Modalidade
-                  </Button>
-                </div>
-              </form>
-            )}
+                      <div className="topic-item-actions">
+                        <button
+                          className="action-icon-btn edit"
+                          onClick={() => handleEditCategory(cat)}
+                          title="Editar e Renomear Categoria"
+                        >
+                          <Edit2 size={15} />
+                        </button>
+                        <button
+                          className="action-icon-btn delete"
+                          onClick={() => handleDeleteCategory(cat.id, cat.label)}
+                          title="Excluir Categoria do Menu"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -4717,6 +4953,150 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               </div>
             </form>
           )}
+        </Modal>
+
+        {/* ======================================================== */}
+        {/* MODAL DE CADASTRO / EDIÇÃO DE CATEGORIA DO MENU DO USUÁRIO */}
+        {/* ======================================================== */}
+        <Modal
+          isOpen={isCategoryModalOpen}
+          onClose={() => setIsCategoryModalOpen(false)}
+          title={editingCategory?.id ? `Editar Categoria: ${editingCategory.label || ''}` : 'Adicionar Nova Categoria ao Menu'}
+          maxWidth="640px"
+        >
+          <form onSubmit={handleSaveCategorySubmit} className="partner-form-modal">
+            <div className="form-grid-2">
+              <div className="form-group sm-col-span-2">
+                <label>Nome da Categoria / Pílula do Menu *</label>
+                <input
+                  type="text"
+                  value={categoryFormLabel}
+                  onChange={(e) => {
+                    setCategoryFormLabel(e.target.value);
+                    if (!editingCategory?.id && !categoryFormId) {
+                      const autoSlug = e.target.value
+                        .toLowerCase()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/\s+/g, '-')
+                        .replace(/[^a-z0-9-]/g, '');
+                      setCategoryFormId(autoSlug);
+                    }
+                  }}
+                  placeholder="Ex: Emergências 24h, Gastronomia & Sabores, Praias & Enseadas..."
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Identificador Único (Slug / ID) *</label>
+                <input
+                  type="text"
+                  value={categoryFormId}
+                  onChange={(e) => setCategoryFormId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  placeholder="Ex: emergencias, praias, gastronomia"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Cor de Destaque Visual (Accent Color)</label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={categoryFormColor}
+                    onChange={(e) => setCategoryFormColor(e.target.value)}
+                    style={{ width: '40px', height: '38px', padding: '2px', border: 'none', borderRadius: '6px', cursor: 'pointer', background: 'transparent' }}
+                  />
+                  <input
+                    type="text"
+                    value={categoryFormColor}
+                    onChange={(e) => setCategoryFormColor(e.target.value)}
+                    placeholder="#00B4D8"
+                    style={{ flex: 1 }}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group sm-col-span-2">
+                <label>Ícone Representativo</label>
+                <select
+                  value={categoryFormIcon}
+                  onChange={(e) => setCategoryFormIcon(e.target.value)}
+                  style={{ width: '100%' }}
+                >
+                  {AVAILABLE_CATEGORY_ICONS.map((ico) => (
+                    <option key={ico.name} value={ico.name}>
+                      {ico.label} ({ico.name})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Seletor Rápido de Paleta de Cores */}
+              <div className="form-group sm-col-span-2">
+                <label style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Cores Rápidas Sugeridas:</label>
+                <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                  {[
+                    { color: '#EF4444', name: 'Vermelho Emergência' },
+                    { color: '#00B4D8', name: 'Ciano Oceano' },
+                    { color: '#F4A261', name: 'Laranja Gastronomia' },
+                    { color: '#E76F51', name: 'Coral Bar' },
+                    { color: '#10B981', name: 'Esmeralda Dicas' },
+                    { color: '#2EC4B6', name: 'Turquesa Hotel' },
+                    { color: '#0077B6', name: 'Azul Náutico' },
+                    { color: '#FB923C', name: 'Laranja Pôr do Sol' },
+                    { color: '#A78BFA', name: 'Roxo Compras' },
+                    { color: '#F59E0B', name: 'Âmbar Cultura' },
+                    { color: '#818CF8', name: 'Índigo Noite' }
+                  ].map((preset) => (
+                    <button
+                      key={preset.color}
+                      type="button"
+                      onClick={() => setCategoryFormColor(preset.color)}
+                      style={{
+                        width: '26px',
+                        height: '26px',
+                        borderRadius: '50%',
+                        backgroundColor: preset.color,
+                        border: categoryFormColor === preset.color ? '2px solid #FFFFFF' : '1px solid rgba(255,255,255,0.2)',
+                        boxShadow: categoryFormColor === preset.color ? '0 0 8px ' + preset.color : 'none',
+                        cursor: 'pointer'
+                      }}
+                      title={preset.name}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-group sm-col-span-2">
+                <label>Descrição do Tópico / Categoria</label>
+                <textarea
+                  rows={2}
+                  value={categoryFormDesc}
+                  onChange={(e) => setCategoryFormDesc(e.target.value)}
+                  placeholder="Ex: Hospitais, postos de saúde, farmácias 24h, táxis, chaveiros e veterinários de plantão"
+                />
+              </div>
+            </div>
+
+            <div className="partner-form-footer" style={{ marginTop: '1.25rem' }}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsCategoryModalOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                variant="gold"
+                iconLeft={<Save size={15} />}
+              >
+                Salvar Categoria
+              </Button>
+            </div>
+          </form>
         </Modal>
 
         {/* ======================================================== */}
