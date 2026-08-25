@@ -23,6 +23,7 @@ const STORAGE_PARTNER_CLICKS_KEY = 'jampa_partner_clicks_metrics_v2';
 const STORAGE_AFFILIATES_KEY = 'jampa_admin_affiliates_v1';
 const STORAGE_AFFILIATE_SALES_KEY = 'jampa_admin_affiliate_sales_v1';
 const STORAGE_QR_CHANNELS_KEY = 'jampa_admin_qr_channels_v2';
+const STORAGE_PLACES_ORDER_KEY = 'jampa_admin_places_order_v1';
 
 export const INITIAL_NEIGHBORHOODS: Neighborhood[] = [
   {
@@ -1099,7 +1100,7 @@ class AdminService {
     const customPlaces = this.getCustomPlaces();
     const deletedIds = this.getDeletedPlaceIds();
 
-    // Substitui cada mockPlace pelo seu equivalente customizado se existir (preserva a ordem do catálogo)
+    // Substitui cada mockPlace pelo seu equivalente customizado se existir
     const mappedMockPlaces = MOCK_PLACES.filter((p) => !deletedIds.includes(p.id)).map((mockPlace) => {
       const custom = customPlaces.find((c) => c.id === mockPlace.id);
       return this.normalizePlaceModel(this.normalizePlacePhotos(custom || mockPlace));
@@ -1110,7 +1111,83 @@ class AdminService {
       .filter((c) => !MOCK_PLACES.some((m) => m.id === c.id) && !deletedIds.includes(c.id))
       .map((c) => this.normalizePlaceModel(this.normalizePlacePhotos(c)));
 
-    return [...brandNewCustomPlaces, ...mappedMockPlaces];
+    const all = [...brandNewCustomPlaces, ...mappedMockPlaces];
+    const order = this.getPlacesOrder();
+
+    if (order && order.length > 0) {
+      // Ordena de acordo com o array de IDs configurado manualmente
+      const orderMap = new Map<string, number>();
+      order.forEach((id, index) => orderMap.set(id, index));
+
+      all.sort((a, b) => {
+        const indexA = orderMap.has(a.id) ? orderMap.get(a.id)! : 999999;
+        const indexB = orderMap.has(b.id) ? orderMap.get(b.id)! : 999999;
+        return indexA - indexB;
+      });
+    }
+
+    return all;
+  }
+
+  public getPlacesOrder(): string[] {
+    const data = localStorage.getItem(STORAGE_PLACES_ORDER_KEY);
+    if (!data) return [];
+    try {
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  public savePlacesOrder(orderedIds: string[]): void {
+    safeSetItem(STORAGE_PLACES_ORDER_KEY, JSON.stringify(orderedIds));
+    this.addLog({
+      type: 'general',
+      title: 'Ordem de Exibição dos Locais Atualizada',
+      details: `Sequência de ${orderedIds.length} locais reordenada para o catálogo principal e menu "Todas as Experiências".`
+    });
+  }
+
+  public movePlaceOrder(placeId: string, direction: 'up' | 'down'): Place[] {
+    const places = this.getAllPlaces();
+    const index = places.findIndex((p) => p.id === placeId);
+    if (index === -1) return places;
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= places.length) return places;
+
+    const newPlaces = [...places];
+    const [moved] = newPlaces.splice(index, 1);
+    newPlaces.splice(targetIndex, 0, moved);
+
+    this.savePlacesOrder(newPlaces.map((p) => p.id));
+    return newPlaces;
+  }
+
+  public setPlacePosition(placeId: string, targetPosition1Based: number): Place[] {
+    const places = this.getAllPlaces();
+    const index = places.findIndex((p) => p.id === placeId);
+    if (index === -1) return places;
+
+    const clampedIndex = Math.max(0, Math.min(places.length - 1, targetPosition1Based - 1));
+    if (clampedIndex === index) return places;
+
+    const newPlaces = [...places];
+    const [moved] = newPlaces.splice(index, 1);
+    newPlaces.splice(clampedIndex, 0, moved);
+
+    this.savePlacesOrder(newPlaces.map((p) => p.id));
+    return newPlaces;
+  }
+
+  public resetPlacesOrder(): Place[] {
+    localStorage.removeItem(STORAGE_PLACES_ORDER_KEY);
+    this.addLog({
+      type: 'general',
+      title: 'Ordem Padrão dos Locais Restaurada',
+      details: 'A sequência dos locais voltou ao padrão original do catálogo.'
+    });
+    return this.getAllPlaces();
   }
 
   public getCustomPlaces(): Place[] {

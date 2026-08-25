@@ -53,7 +53,8 @@ import {
   Globe,
   Share2,
   Printer,
-  Copy
+  Copy,
+  RotateCcw
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Badge } from '../common/Badge';
@@ -1139,6 +1140,25 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     }
   };
 
+  /* ======================================================== */
+  /* OPERAÇÕES DE ORDENAÇÃO DE LOCAIS (SEQUÊNCIA DO CATÁLOGO) */
+  /* ======================================================== */
+  const handleMovePlaceOrder = (placeId: string, direction: 'up' | 'down') => {
+    adminService.movePlaceOrder(placeId, direction);
+    onPlacesUpdated();
+    syncLocalData();
+    showNotification('Ordem dos locais atualizada no catálogo principal!');
+  };
+
+  const handleResetPlacesOrder = () => {
+    if (window.confirm('Deseja restaurar a ordem padrão original de todos os locais no catálogo?')) {
+      adminService.resetPlacesOrder();
+      onPlacesUpdated();
+      syncLocalData();
+      showNotification('Ordem padrão dos locais restaurada!');
+    }
+  };
+
   /* OPERAÇÕES DE DICAS DENTRO DO FORMULÁRIO DO LOCAL */
   const handleAddTipInPlaceForm = (e?: React.FormEvent) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -1521,10 +1541,33 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   </Button>
                 </div>
 
+                {/* Banner Informativo de Sequência do Catálogo */}
+                <div className="admin-places-order-banner glass-panel">
+                  <div className="order-banner-left">
+                    <SlidersHorizontal size={17} color="#00B4D8" />
+                    <div>
+                      <strong>Sequência de Exibição no Menu "Todas as Experiências":</strong>
+                      <span>Os locais aparecem para os visitantes exatamente na ordem abaixo (#1, #2, #3...). Use os botões ⬆️ ⬇️ para posicionar os mais visitados primeiro.</span>
+                    </div>
+                  </div>
+                  {adminService.getPlacesOrder().length > 0 && (
+                    <button
+                      type="button"
+                      className="restore-order-btn"
+                      onClick={handleResetPlacesOrder}
+                      title="Restaurar sequência original do catálogo"
+                    >
+                      <RotateCcw size={13} />
+                      <span>Restaurar Ordem Padrão</span>
+                    </button>
+                  )}
+                </div>
+
                 <div className="admin-places-table-wrap glass-panel hide-mobile">
                   <table className="admin-table">
                     <thead>
                       <tr>
+                        <th style={{ width: '85px', textAlign: 'center' }}>Ordem</th>
                         <th>Foto</th>
                         <th>Nome do Local</th>
                         <th>Modalidade</th>
@@ -1536,85 +1579,122 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredPlaces.map((p) => (
-                        <tr key={p.id}>
-                          <td>
-                            <img src={p.featuredImage} alt={p.name} className="table-thumb" />
-                          </td>
-                          <td>
-                            <strong className="place-table-name">{p.name}</strong>
-                            <span className="place-table-sub">{p.slogan || p.publicTeaser}</span>
-                          </td>
-                          <td>
-                            <Badge variant="cyan" size="sm">{p.modalityName || p.categoryLabel || 'Praias'}</Badge>
-                          </td>
-                          <td>{p.neighborhood}</td>
-                          <td>
-                            {p.isPartner ? (
-                              <Badge variant="gold" size="sm" icon={<Handshake size={12} />}>
-                                {p.partnerLevel === 'fundador' ? '⭐ Fundador' : p.partnerLevel === 'destaque' ? '✨ Destaque' : 'Parceiro'}
-                              </Badge>
-                            ) : (
-                              <span className="non-partner-tag">Orgânico</span>
-                            )}
-                          </td>
-                          <td>
-                            <button
-                              className="photos-counter-pill"
-                              onClick={() => {
-                                setSelectedPlaceForPhotos(p);
-                                setActiveTab('photos');
-                              }}
-                              title="Gerenciar Fotos deste Local"
-                            >
-                              <Camera size={13} />
-                              <span>{p.gallery ? p.gallery.length : 1} fotos</span>
-                            </button>
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="tips-counter-pill"
-                              onClick={() => {
-                                setSelectedPlaceForTips(p);
-                                setActiveTab('tips');
-                              }}
-                              title="Gerenciar Dicas Secretas & Melhores Práticas deste Local"
-                            >
-                              <Sparkles size={13} color="#F4A261" />
-                              <span>{p.tips ? p.tips.length : 0} dicas</span>
-                            </button>
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            <div className="table-actions-row">
+                      {filteredPlaces.map((p) => {
+                        const globalIdx = allPlaces.findIndex((ap) => ap.id === p.id);
+                        const displayRank = globalIdx >= 0 ? globalIdx + 1 : 1;
+                        const isFirst = globalIdx === 0;
+                        const isLast = globalIdx === allPlaces.length - 1;
+
+                        return (
+                          <tr key={p.id}>
+                            <td style={{ textAlign: 'center' }}>
+                              <div className="order-stepper-wrap">
+                                <span
+                                  className={`order-rank-badge ${displayRank === 1 ? 'top-1' : displayRank === 2 ? 'top-2' : displayRank === 3 ? 'top-3' : ''}`}
+                                  title={`Posição #${displayRank} no menu principal`}
+                                >
+                                  #{displayRank}
+                                </span>
+                                <div className="order-arrows-col">
+                                  <button
+                                    type="button"
+                                    className="order-arrow-btn"
+                                    onClick={() => handleMovePlaceOrder(p.id, 'up')}
+                                    disabled={isFirst}
+                                    title="Mover para cima (exibir antes no catálogo)"
+                                  >
+                                    <MoveUp size={12} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="order-arrow-btn"
+                                    onClick={() => handleMovePlaceOrder(p.id, 'down')}
+                                    disabled={isLast}
+                                    title="Mover para baixo (exibir depois no catálogo)"
+                                  >
+                                    <MoveDown size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <img src={p.featuredImage} alt={p.name} className="table-thumb" />
+                            </td>
+                            <td>
+                              <strong className="place-table-name">{p.name}</strong>
+                              <span className="place-table-sub">{p.slogan || p.publicTeaser}</span>
+                            </td>
+                            <td>
+                              <Badge variant="cyan" size="sm">{p.modalityName || p.categoryLabel || 'Praias'}</Badge>
+                            </td>
+                            <td>{p.neighborhood}</td>
+                            <td>
+                              {p.isPartner ? (
+                                <Badge variant="gold" size="sm" icon={<Handshake size={12} />}>
+                                  {p.partnerLevel === 'fundador' ? '⭐ Fundador' : p.partnerLevel === 'destaque' ? '✨ Destaque' : 'Parceiro'}
+                                </Badge>
+                              ) : (
+                                <span className="non-partner-tag">Orgânico</span>
+                              )}
+                            </td>
+                            <td>
                               <button
-                                className="action-icon-btn tips-btn"
+                                className="photos-counter-pill"
+                                onClick={() => {
+                                  setSelectedPlaceForPhotos(p);
+                                  setActiveTab('photos');
+                                }}
+                                title="Gerenciar Fotos deste Local"
+                              >
+                                <Camera size={13} />
+                                <span>{p.gallery ? p.gallery.length : 1} fotos</span>
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                className="tips-counter-pill"
                                 onClick={() => {
                                   setSelectedPlaceForTips(p);
                                   setActiveTab('tips');
                                 }}
-                                title="Dicas Secretas & Melhores Práticas deste Local"
+                                title="Gerenciar Dicas Secretas & Melhores Práticas deste Local"
                               >
-                                <Sparkles size={15} color="#F4A261" />
+                                <Sparkles size={13} color="#F4A261" />
+                                <span>{p.tips ? p.tips.length : 0} dicas</span>
                               </button>
-                              <button
-                                className="action-icon-btn edit"
-                                onClick={() => handleEditPlace(p)}
-                                title="Editar Local, Fotos, Benefícios VIP e Dicas"
-                              >
-                                <Edit2 size={15} />
-                              </button>
-                              <button
-                                className="action-icon-btn delete"
-                                onClick={() => handleDeletePlace(p.id, p.name)}
-                                title="Excluir Local"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <div className="table-actions-row">
+                                <button
+                                  className="action-icon-btn tips-btn"
+                                  onClick={() => {
+                                    setSelectedPlaceForTips(p);
+                                    setActiveTab('tips');
+                                  }}
+                                  title="Dicas Secretas & Melhores Práticas deste Local"
+                                >
+                                  <Sparkles size={15} color="#F4A261" />
+                                </button>
+                                <button
+                                  className="action-icon-btn edit"
+                                  onClick={() => handleEditPlace(p)}
+                                  title="Editar Local, Fotos, Benefícios VIP e Dicas"
+                                >
+                                  <Edit2 size={15} />
+                                </button>
+                                <button
+                                  className="action-icon-btn delete"
+                                  onClick={() => handleDeletePlace(p.id, p.name)}
+                                  title="Excluir Local"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1626,25 +1706,58 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       <p>Nenhum local encontrado para os filtros selecionados.</p>
                     </div>
                   ) : (
-                    filteredPlaces.map((p) => (
-                      <div key={p.id} className="admin-mobile-place-card glass-panel">
-                        <div className="mobile-place-card-top">
-                          <img src={p.featuredImage} alt={p.name} className="mobile-place-thumb" />
-                          <div className="mobile-place-info">
-                            <strong className="mobile-place-name">{p.name}</strong>
-                            <span className="mobile-place-neighborhood">{p.neighborhood}</span>
-                            <div className="mobile-place-tags">
-                              <Badge variant="cyan" size="sm">{p.modalityName || p.categoryLabel || 'Praias'}</Badge>
-                              {p.isPartner ? (
-                                <Badge variant="gold" size="sm" icon={<Handshake size={11} />}>
-                                  {p.partnerLevel === 'fundador' ? '⭐ Fundador' : p.partnerLevel === 'destaque' ? '✨ Destaque' : 'Parceiro'}
-                                </Badge>
-                              ) : (
-                                <span className="non-partner-tag">Orgânico</span>
-                              )}
+                    filteredPlaces.map((p) => {
+                      const globalIdx = allPlaces.findIndex((ap) => ap.id === p.id);
+                      const displayRank = globalIdx >= 0 ? globalIdx + 1 : 1;
+                      const isFirst = globalIdx === 0;
+                      const isLast = globalIdx === allPlaces.length - 1;
+
+                      return (
+                        <div key={p.id} className="admin-mobile-place-card glass-panel">
+                          <div className="mobile-place-card-top">
+                            <div className="mobile-order-badge-col">
+                              <span
+                                className={`order-rank-badge ${displayRank === 1 ? 'top-1' : displayRank === 2 ? 'top-2' : displayRank === 3 ? 'top-3' : ''}`}
+                              >
+                                #{displayRank}
+                              </span>
+                              <div className="mobile-order-arrows">
+                                <button
+                                  type="button"
+                                  className="order-arrow-btn"
+                                  onClick={() => handleMovePlaceOrder(p.id, 'up')}
+                                  disabled={isFirst}
+                                  title="Mover para cima"
+                                >
+                                  <MoveUp size={12} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="order-arrow-btn"
+                                  onClick={() => handleMovePlaceOrder(p.id, 'down')}
+                                  disabled={isLast}
+                                  title="Mover para baixo"
+                                >
+                                  <MoveDown size={12} />
+                                </button>
+                              </div>
+                            </div>
+                            <img src={p.featuredImage} alt={p.name} className="mobile-place-thumb" />
+                            <div className="mobile-place-info">
+                              <strong className="mobile-place-name">{p.name}</strong>
+                              <span className="mobile-place-neighborhood">{p.neighborhood}</span>
+                              <div className="mobile-place-tags">
+                                <Badge variant="cyan" size="sm">{p.modalityName || p.categoryLabel || 'Praias'}</Badge>
+                                {p.isPartner ? (
+                                  <Badge variant="gold" size="sm" icon={<Handshake size={11} />}>
+                                    {p.partnerLevel === 'fundador' ? '⭐ Fundador' : p.partnerLevel === 'destaque' ? '✨ Destaque' : 'Parceiro'}
+                                  </Badge>
+                                ) : (
+                                  <span className="non-partner-tag">Orgânico</span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
                         <div className="mobile-place-card-meta">
                           <button
@@ -1710,7 +1823,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                           </button>
                         </div>
                       </div>
-                    ))
+                    );
+                  })
                   )}
                 </div>
               </>
@@ -5052,6 +5166,162 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
       </div>
 
       <style>{`
+        /* ======================================================== */
+        /* ORDENAÇÃO DE LOCAIS & SEQUÊNCIA DO CATÁLOGO */
+        /* ======================================================== */
+        .admin-places-order-banner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.85rem 1.25rem;
+          margin-bottom: 1.25rem;
+          background: rgba(0, 180, 216, 0.08);
+          border: 1px solid rgba(0, 180, 216, 0.25);
+          border-radius: var(--radius-md);
+        }
+
+        .order-banner-left {
+          display: flex;
+          align-items: center;
+          gap: 0.85rem;
+          color: var(--text-primary);
+          font-size: 0.875rem;
+        }
+
+        .order-banner-left strong {
+          display: block;
+          color: #00B4D8;
+          font-weight: 700;
+          margin-bottom: 0.15rem;
+        }
+
+        .order-banner-left span {
+          color: var(--text-secondary);
+          font-size: 0.825rem;
+        }
+
+        .restore-order-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: var(--radius-full);
+          padding: 0.4rem 0.85rem;
+          color: #94A3B8;
+          font-size: 0.785rem;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.2s ease;
+        }
+
+        .restore-order-btn:hover {
+          background: rgba(231, 111, 81, 0.15);
+          border-color: rgba(231, 111, 81, 0.4);
+          color: #E76F51;
+        }
+
+        .order-stepper-wrap {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          justify-content: center;
+        }
+
+        .order-rank-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 32px;
+          height: 26px;
+          padding: 0 0.45rem;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: var(--radius-full);
+          color: #E2E8F0;
+          font-size: 0.785rem;
+          font-weight: 700;
+          font-family: monospace;
+          letter-spacing: 0.03em;
+        }
+
+        .order-rank-badge.top-1 {
+          background: linear-gradient(135deg, #F4A261, #E76F51);
+          border-color: #F4A261;
+          color: #0F172A;
+          box-shadow: 0 0 12px rgba(244, 162, 97, 0.4);
+          font-weight: 900;
+        }
+
+        .order-rank-badge.top-2 {
+          background: linear-gradient(135deg, #94A3B8, #CBD5E1);
+          border-color: #CBD5E1;
+          color: #0F172A;
+          font-weight: 800;
+        }
+
+        .order-rank-badge.top-3 {
+          background: linear-gradient(135deg, #00B4D8, #0077B6);
+          border-color: #00B4D8;
+          color: #FFFFFF;
+          font-weight: 800;
+        }
+
+        .order-arrows-col,
+        .mobile-order-arrows {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .order-arrow-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 18px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+          color: #94A3B8;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          padding: 0;
+        }
+
+        .order-arrow-btn:hover:not(:disabled) {
+          background: rgba(0, 180, 216, 0.2);
+          border-color: #00B4D8;
+          color: #00B4D8;
+          transform: translateY(-1px);
+        }
+
+        .order-arrow-btn:disabled {
+          opacity: 0.2;
+          cursor: not-allowed;
+        }
+
+        .mobile-order-badge-col {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.35rem;
+          margin-right: 0.5rem;
+        }
+
+        .mobile-order-arrows {
+          display: flex;
+          flex-direction: row;
+          gap: 4px;
+        }
+
+        .mobile-order-arrows .order-arrow-btn {
+          width: 26px;
+          height: 24px;
+        }
+
         /* ======================================================== */
         /* ESTILOS DE CLIENTES & WHATSAPP */
         /* ======================================================== */
