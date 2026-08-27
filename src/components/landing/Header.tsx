@@ -51,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Desktop Nav Links */}
         <nav className="desktop-nav" aria-label="Navegação Principal">
           <a href="#previa" className="nav-link">Locais & Dicas</a>
+          <a href="#mares" className="nav-link">🌊 Tábua de Marés</a>
           <a href="#roteiros" className="nav-link">Roteiros</a>
           <a href="#mapa" className="nav-link">Mapa Interativo</a>
           {!isVipMode && <a href="#comparativo" className="nav-link">Por que Nós?</a>}
@@ -129,6 +130,9 @@ export const Header: React.FC<HeaderProps> = ({
           <nav className="mobile-nav">
             <a href="#previa" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>
               Locais & Dicas
+            </a>
+            <a href="#mares" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>
+              🌊 Tábua de Marés
             </a>
             <a href="#roteiros" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>
               Roteiros
@@ -266,7 +270,7 @@ export const Header: React.FC<HeaderProps> = ({
         .desktop-nav {
           display: flex;
           align-items: center;
-          gap: var(--space-xl);
+          gap: clamp(0.65rem, 1.2vw, 1.5rem);
         }
 
         .nav-link {

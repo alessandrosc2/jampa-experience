@@ -10,6 +10,7 @@ import { Header } from './components/landing/Header';
 import { HeroSection } from './components/landing/HeroSection';
 import { StatsBar } from './components/landing/StatsBar';
 import { CategoryNav } from './components/landing/CategoryNav';
+import { TideSection } from './components/tides/TideSection';
 import { PreviewGrid } from './components/landing/PreviewGrid';
 import { ItinerarySection } from './components/itineraries/ItinerarySection';
 import { InteractiveMapSection } from './components/map/InteractiveMapSection';
@@ -380,6 +381,9 @@ export function App() {
         selectedCategory={selectedCategory}
         onSelectCategory={(cat) => setSelectedCategory(cat)}
       />
+
+      {/* Tábua de Marés Oficial & Calendário Interativo de 7 Dias */}
+      <TideSection onOpenPlacesPreview={scrollToPreview} />
 
       {/* Grade de Locais & Dicas com Filtros Avançados & Guia por Bairros */}
       <PreviewGrid
