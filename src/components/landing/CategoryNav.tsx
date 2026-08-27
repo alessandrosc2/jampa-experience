@@ -31,7 +31,8 @@ import {
   Activity,
   Shield,
   Flame,
-  Crosshair
+  Crosshair,
+  Waves
 } from 'lucide-react';
 import { CategoryId, CategoryInfo } from '../../types/place';
 import { CATEGORIES as DEFAULT_CATEGORIES } from '../../data/categories';
@@ -40,6 +41,7 @@ interface CategoryNavProps {
   categories?: CategoryInfo[];
   selectedCategory: CategoryId | 'all';
   onSelectCategory: (id: CategoryId | 'all') => void;
+  onOpenTides?: () => void;
 }
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -72,13 +74,15 @@ const iconMap: Record<string, React.ReactNode> = {
   Activity: <Activity size={18} />,
   Shield: <Shield size={18} />,
   Flame: <Flame size={18} />,
-  Crosshair: <Crosshair size={18} />
+  Crosshair: <Crosshair size={18} />,
+  Waves: <Waves size={18} />
 };
 
 export const CategoryNav: React.FC<CategoryNavProps> = ({
   categories = DEFAULT_CATEGORIES,
   selectedCategory,
-  onSelectCategory
+  onSelectCategory,
+  onOpenTides
 }) => {
   return (
     <div className="category-nav-wrapper" id="categorias">
@@ -94,6 +98,20 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
           <p className="section-subtext">
             Conteúdo cuidadosamente selecionado para você aproveitar o melhor de João Pessoa com tranquilidade e praticidade.
           </p>
+
+          {/* Botão de Destaque da Tábua de Marés */}
+          {onOpenTides && (
+            <button
+              type="button"
+              className="tide-header-shortcut-btn"
+              onClick={onOpenTides}
+              title="Abrir Tábua de Marés de João Pessoa (7 Dias)"
+            >
+              <Waves size={15} color="#00B4D8" />
+              <span>🌊 Consultar Tábua de Marés Oficial (7 Dias)</span>
+              <span className="tide-shortcut-badge">Ao Vivo</span>
+            </button>
+          )}
         </div>
 
         {/* Scrollable Categories List */}
@@ -107,6 +125,21 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
             </div>
             <span className="cat-label">Todas as Experiências</span>
           </button>
+
+          {/* Botão Direto na Grade de Categorias */}
+          {onOpenTides && (
+            <button
+              type="button"
+              className="category-pill tide-pill"
+              onClick={onOpenTides}
+              style={{ '--cat-accent': '#00B4D8' } as React.CSSProperties}
+            >
+              <div className="cat-icon-box">
+                <Waves size={18} color="#00B4D8" />
+              </div>
+              <span className="cat-label">🌊 Tábua de Marés</span>
+            </button>
+          )}
 
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat.id;
@@ -168,6 +201,53 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
           font-size: 0.95rem;
           color: #94A3B8;
           line-height: 1.5;
+        }
+
+        .tide-header-shortcut-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.45rem 1.15rem;
+          margin-top: 0.5rem;
+          background: rgba(0, 180, 216, 0.08);
+          border: 1px solid rgba(0, 180, 216, 0.3);
+          border-radius: var(--radius-full);
+          color: #E2E8F0;
+          font-size: 0.85rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .tide-header-shortcut-btn:hover {
+          background: rgba(0, 180, 216, 0.2);
+          border-color: #00B4D8;
+          color: #F8FAFC;
+          box-shadow: 0 0 16px rgba(0, 180, 216, 0.3);
+          transform: translateY(-1px);
+        }
+
+        .tide-shortcut-badge {
+          font-size: 0.675rem;
+          font-weight: 800;
+          padding: 0.1rem 0.45rem;
+          background: rgba(16, 185, 129, 0.2);
+          border: 1px solid rgba(16, 185, 129, 0.4);
+          color: #34D399;
+          border-radius: var(--radius-full);
+          text-transform: uppercase;
+        }
+
+        .category-pill.tide-pill {
+          background: rgba(0, 180, 216, 0.12);
+          border-color: rgba(0, 180, 216, 0.4);
+          color: #00B4D8;
+        }
+
+        .category-pill.tide-pill:hover {
+          background: rgba(0, 180, 216, 0.25);
+          border-color: #00B4D8;
+          box-shadow: 0 0 16px rgba(0, 180, 216, 0.35);
         }
 
         .category-scroll-container {

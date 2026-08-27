@@ -26,7 +26,8 @@ import {
   Globe,
   Crown,
   Handshake,
-  Camera
+  Camera,
+  Waves
 } from 'lucide-react';
 import { Place, Topic, Partner } from '../../types/place';
 import { User } from '../../types/user';
@@ -47,6 +48,7 @@ interface PlacePreviewModalProps {
   onClose: () => void;
   onUnlockClick: () => void;
   onRequireAuth: () => void;
+  onOpenTides?: () => void;
 }
 
 export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
@@ -58,7 +60,8 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
   onToggleFavorite,
   onClose,
   onUnlockClick,
-  onRequireAuth
+  onRequireAuth,
+  onOpenTides
 }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -368,6 +371,27 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
                     <span className="amenity-badge"><CreditCard size={13} /> Cartões</span>
                   )}
                 </div>
+
+                {/* Atalho Inteligente para Tábua de Marés nos Locais Costeiros/Passeios */}
+                {onOpenTides && (place.categoryId === 'praias' || place.categoryId === 'passeios' || place.categoryId === 'dicas' || place.tags.some(t => t.toLowerCase().includes('maré') || t.toLowerCase().includes('piscina') || t.toLowerCase().includes('catamarã') || t.toLowerCase().includes('seixas') || t.toLowerCase().includes('picãozinho') || t.toLowerCase().includes('areia vermelha'))) && (
+                  <div className="place-tide-box glass-panel">
+                    <div className="place-tide-box-left">
+                      <Waves size={18} color="#00B4D8" />
+                      <div>
+                        <strong className="place-tide-title">Consultar Tábua de Marés deste Local</strong>
+                        <span className="place-tide-sub">Veja os horários ideais de maré baixa para os próximos 7 dias.</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="place-tide-action-btn"
+                      onClick={onOpenTides}
+                    >
+                      <span>Ver Marés (7D)</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
+                )}
 
                 {/* ======================================================== */}
                 {/* SEÇÃO DE ESTABELECIMENTOS & BENEFÍCIOS PARCEIROS (1-TO-N) */}
@@ -968,6 +992,63 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
+          }
+
+          .place-tide-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.85rem 1.15rem;
+            background: linear-gradient(90deg, rgba(0, 180, 216, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+            border: 1px solid rgba(0, 180, 216, 0.35);
+            border-radius: var(--radius-lg);
+            margin-top: 0.35rem;
+          }
+
+          .place-tide-box-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+          }
+
+          .place-tide-box-left div {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+          }
+
+          .place-tide-title {
+            font-size: 0.875rem;
+            color: #F8FAFC;
+            font-weight: 700;
+          }
+
+          .place-tide-sub {
+            font-size: 0.785rem;
+            color: #94A3B8;
+          }
+
+          .place-tide-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.85rem;
+            background: rgba(0, 180, 216, 0.2);
+            border: 1px solid rgba(0, 180, 216, 0.5);
+            border-radius: var(--radius-full);
+            color: #00B4D8;
+            font-size: 0.785rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+          }
+
+          .place-tide-action-btn:hover {
+            background: #00B4D8;
+            color: #0F172A;
+            box-shadow: 0 0 12px rgba(0, 180, 216, 0.4);
           }
 
           .place-topics-pill-row {

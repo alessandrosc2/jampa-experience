@@ -10,7 +10,7 @@ import { Header } from './components/landing/Header';
 import { HeroSection } from './components/landing/HeroSection';
 import { StatsBar } from './components/landing/StatsBar';
 import { CategoryNav } from './components/landing/CategoryNav';
-import { TideSection } from './components/tides/TideSection';
+import { TideModal } from './components/tides/TideModal';
 import { PreviewGrid } from './components/landing/PreviewGrid';
 import { ItinerarySection } from './components/itineraries/ItinerarySection';
 import { InteractiveMapSection } from './components/map/InteractiveMapSection';
@@ -112,6 +112,7 @@ export function App() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTideModalOpen, setIsTideModalOpen] = useState(false);
   const [mobileActiveTab, setMobileActiveTab] = useState<'explore' | 'map' | 'itineraries' | 'favorites' | 'vip'>('explore');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -361,6 +362,7 @@ export function App() {
         onOpenAuth={handleOpenAuth}
         onOpenDashboard={() => setIsDashboardOpen(true)}
         onOpenFavorites={() => setIsFavoritesOpen(true)}
+        onOpenTides={() => setIsTideModalOpen(true)}
       />
 
       {/* Hero com 3D Integrado */}
@@ -380,10 +382,8 @@ export function App() {
         categories={dynamicCategories}
         selectedCategory={selectedCategory}
         onSelectCategory={(cat) => setSelectedCategory(cat)}
+        onOpenTides={() => setIsTideModalOpen(true)}
       />
-
-      {/* Tábua de Marés Oficial & Calendário Interativo de 7 Dias */}
-      <TideSection onOpenPlacesPreview={scrollToPreview} />
 
       {/* Grade de Locais & Dicas com Filtros Avançados & Guia por Bairros */}
       <PreviewGrid
@@ -472,6 +472,7 @@ export function App() {
           setSelectedPlace(null);
           handleOpenAuth('login');
         }}
+        onOpenTides={() => setIsTideModalOpen(true)}
       />
 
       {/* Modal de Favoritos */}
@@ -512,6 +513,12 @@ export function App() {
         onOpenCheckout={() => setIsCheckoutOpen(true)}
         onOpenFavorites={() => setIsFavoritesOpen(true)}
         onExploreClick={scrollToPreview}
+      />
+
+      {/* Modal Oficial da Tábua de Marés de João Pessoa (7 Dias) */}
+      <TideModal
+        isOpen={isTideModalOpen}
+        onClose={() => setIsTideModalOpen(false)}
       />
 
       <style>{`

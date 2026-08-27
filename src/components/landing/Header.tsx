@@ -12,6 +12,7 @@ interface HeaderProps {
   onOpenAuth: (tab?: 'login' | 'register') => void;
   onOpenDashboard: () => void;
   onOpenFavorites: () => void;
+  onOpenTides: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,7 +22,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCheckout,
   onOpenAuth,
   onOpenDashboard,
-  onOpenFavorites
+  onOpenFavorites,
+  onOpenTides
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -51,7 +53,9 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Desktop Nav Links */}
         <nav className="desktop-nav" aria-label="Navegação Principal">
           <a href="#previa" className="nav-link">Locais & Dicas</a>
-          <a href="#mares" className="nav-link">🌊 Tábua de Marés</a>
+          <button type="button" onClick={onOpenTides} className="nav-link nav-btn-link">
+            🌊 Tábua de Marés
+          </button>
           <a href="#roteiros" className="nav-link">Roteiros</a>
           <a href="#mapa" className="nav-link">Mapa Interativo</a>
           {!isVipMode && <a href="#comparativo" className="nav-link">Por que Nós?</a>}
@@ -131,9 +135,16 @@ export const Header: React.FC<HeaderProps> = ({
             <a href="#previa" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>
               Locais & Dicas
             </a>
-            <a href="#mares" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>
+            <button
+              type="button"
+              className="mobile-link mobile-btn-link"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenTides();
+              }}
+            >
               🌊 Tábua de Marés
-            </a>
+            </button>
             <a href="#roteiros" className="mobile-link" onClick={() => setMobileMenuOpen(false)}>
               Roteiros
             </a>
@@ -284,6 +295,23 @@ export const Header: React.FC<HeaderProps> = ({
 
         .nav-link:hover {
           color: #00B4D8;
+        }
+
+        button.nav-btn-link {
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          font-family: inherit;
+        }
+
+        button.mobile-btn-link {
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-family: inherit;
+          text-align: left;
+          width: 100%;
         }
 
         .header-actions {
