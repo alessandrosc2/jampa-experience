@@ -6,6 +6,7 @@ import { authService } from './services/authService';
 import { favoritesService } from './services/favoritesService';
 import { adminService } from './services/adminService';
 import { premiumContentService } from './services/premiumContentService';
+import { analyticsService } from './services/analyticsService';
 import { Header } from './components/landing/Header';
 import { HeroSection } from './components/landing/HeroSection';
 import { StatsBar } from './components/landing/StatsBar';
@@ -41,6 +42,9 @@ export function App() {
       localStorage.removeItem('jampa_theme');
     } catch {}
 
+    // Rastreamento de PageView Inicial
+    analyticsService.trackPageView(window.location.pathname + window.location.hash, document.title);
+
     // Rastreamento de Indicação de Afiliados (?ref=... ou ?af=...)
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -49,6 +53,7 @@ export function App() {
         const cleanRef = refCode.trim().toUpperCase();
         localStorage.setItem('jampa_affiliate_ref', cleanRef);
         adminService.trackAffiliateClick(cleanRef);
+        analyticsService.trackAffiliateReferral(cleanRef);
       }
 
       // Rastreamento de Canais Físicos / Totens (?src=...)
@@ -57,6 +62,7 @@ export function App() {
         const cleanSrc = srcCode.trim().toLowerCase();
         localStorage.setItem('jampa_src_ref', cleanSrc);
         adminService.trackQrChannelScan(cleanSrc);
+        analyticsService.trackQrScan(cleanSrc);
       }
     } catch (e) {
       console.warn('Erro ao rastrear código de afiliado/canal:', e);
@@ -180,11 +186,23 @@ export function App() {
     const place = placesList.find((p) => p.id === placeId);
     const placeName = place ? place.name : 'Local';
 
+    analyticsService.trackFavorite(placeId, placeName, isNowFav ? 'add' : 'remove');
+
     if (isNowFav) {
       showToast(`❤️ "${placeName}" foi adicionado aos seus favoritos!`);
     } else {
       showToast(`Removido dos seus favoritos.`);
     }
+  };
+
+  const handleOpenCheckout = () => {
+    analyticsService.trackBeginCheckout(39.9);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleOpenTides = () => {
+    analyticsService.trackTideView();
+    setIsTideModalOpen(true);
   };
 
   const handleOpenAuth = (tab: 'login' | 'register' = 'login') => {
@@ -259,6 +277,13 @@ export function App() {
 
     setIsVipMode(true);
     localStorage.setItem('jampa_vip_mode', 'true');
+
+    // Rastreamento de Conversão Principal no Google Analytics e Google Ads
+    analyticsService.trackPurchase(
+      transaction.id || transaction.orderId,
+      transaction.amount || 39.90,
+      transaction.paymentMethod || 'PIX'
+    );
 
     // Atribuir comissão a afiliado se houver indicação salva
     try {
@@ -358,18 +383,18 @@ export function App() {
         currentUser={currentUser}
         isVipMode={isVipMode}
         favoriteCount={favoriteIds.length}
-        onOpenCheckout={() => setIsCheckoutOpen(true)}
+        onOpenCheckout={handleOpenCheckout}
         onOpenAuth={handleOpenAuth}
         onOpenDashboard={() => setIsDashboardOpen(true)}
         onOpenFavorites={() => setIsFavoritesOpen(true)}
-        onOpenTides={() => setIsTideModalOpen(true)}
+        onOpenTides={handleOpenTides}
       />
 
       {/* Hero com 3D Integrado */}
       <HeroSection
         isVipMode={isVipMode}
         userName={currentUser?.name}
-        onOpenCheckout={() => setIsCheckoutOpen(true)}
+        onOpenCheckout={handleOpenCheckout}
         onExploreClick={scrollToPreview}
         onSelectLandmark={handleSelectLandmarkFrom3D}
       />
@@ -382,7 +407,7 @@ export function App() {
         categories={dynamicCategories}
         selectedCategory={selectedCategory}
         onSelectCategory={(cat) => setSelectedCategory(cat)}
-        onOpenTides={() => setIsTideModalOpen(true)}
+        onOpenTides={handleOpenTides}
       />
 
       {/* Grade de Locais & Dicas com Filtros Avançados & Guia por Bairros */}
@@ -393,13 +418,13 @@ export function App() {
         favoriteIds={favoriteIds}
         onToggleFavorite={handleToggleFavorite}
         onViewPlaceDetails={(place) => setSelectedPlace(place)}
-        onOpenCheckout={() => setIsCheckoutOpen(true)}
+        onOpenCheckout={handleOpenCheckout}
       />
 
       {/* Roteiros Prontos (1, 3, 5 dias, temáticos) */}
       <ItinerarySection
         isVipMode={isVipMode}
-        onOpenCheckout={() => setIsCheckoutOpen(true)}
+        onOpenCheckout={handleOpenCheckout}
       />
 
       {/* Mapa Turístico Interativo com OpenStreetMap & Geolocalização */}
@@ -407,7 +432,7 @@ export function App() {
         places={placesList}
         isVipMode={isVipMode}
         onSelectPlace={(place) => setSelectedPlace(place)}
-        onOpenCheckout={() => setIsCheckoutOpen(true)}
+        onOpenCheckout={handleOpenCheckout}
       />
 
       {/* ======================================================== */}
@@ -419,7 +444,7 @@ export function App() {
           <ComparisonSection />
 
           {/* Seção da Oferta R$ 39,90 Vitalício */}
-          <OfferSection onOpenCheckout={() => setIsCheckoutOpen(true)} />
+          <OfferSection onOpenCheckout={handleOpenCheckout} />
 
           {/* Pilares de Segurança & Confiança */}
           <TrustSection />

@@ -151,6 +151,7 @@ import { Affiliate, AffiliateSale } from '../../types/affiliate';
 import { adminService, PartnerStat, QrChannel } from '../../services/adminService';
 import { authService } from '../../services/authService';
 import { paymentService } from '../../services/paymentService';
+import { analyticsService } from '../../services/analyticsService';
 import { compressImageFile, isValidImageUrl, reorderArray } from '../../utils/imageUtils';
 
 interface AdminPanelModalProps {
@@ -315,6 +316,23 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [newAdminPass, setNewAdminPass] = useState('');
   const [newAdminPassConfirm, setNewAdminPassConfirm] = useState('');
   const [showSecurityPass, setShowSecurityPass] = useState(false);
+
+  // Estados de Google Analytics 4 & Google Ads
+  const [gaIdInput, setGaIdInput] = useState(() => analyticsService.getSettings().gaId);
+  const [gadsIdInput, setGadsIdInput] = useState(() => analyticsService.getSettings().gadsId);
+  const [gadsLabelInput, setGadsLabelInput] = useState(() => analyticsService.getSettings().gadsConversionLabel);
+
+  const handleSaveAnalyticsSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    analyticsService.saveSettings(gaIdInput, gadsIdInput, gadsLabelInput);
+    adminService.addLog({
+      type: 'general',
+      title: 'Configurações de Google Analytics 4 & Google Ads Atualizadas',
+      details: `GA4 ID: ${gaIdInput || 'Nenhum'}, GAds: ${gadsIdInput || 'Nenhum'}`
+    });
+    setToastMsg('✅ Configurações de Google Analytics & Google Ads salvas com sucesso!');
+    setTimeout(() => setToastMsg(null), 4000);
+  };
 
   // Atualização de dados locais
   const syncLocalData = () => {
@@ -4531,6 +4549,69 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Card de Configuração de Google Analytics 4 & Google Ads */}
+              <form className="admin-form glass-panel" onSubmit={handleSaveAnalyticsSettings} style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
+                <div className="form-header-row">
+                  <div className="sec-form-title-group">
+                    <Activity size={20} color="#00B4D8" />
+                    <h4>Google Analytics 4 (GA4) & Google Ads (Campanhas & Conversões)</h4>
+                  </div>
+                  <span className="live-status-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '999px', padding: '4px 10px', color: '#10B981', fontSize: '0.75rem', fontWeight: 700 }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }}></span> Rastreamento Ativo
+                  </span>
+                </div>
+
+                <p style={{ color: '#94A3B8', fontSize: '0.875rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+                  Conecte seu ID do <strong>Google Analytics 4 (G-XXXXXXXXXX)</strong> e sua Tag de Conversão do <strong>Google Ads (AW-XXXXXXXXXX)</strong>. O sistema dispara automaticamente os eventos de <code>page_view</code>, <code>view_item</code>, <code>begin_checkout</code>, <code>purchase</code> (R$ 39,90), <code>generate_lead</code> (WhatsApp) e escaneamento de QR Codes físicos.
+                </p>
+
+                <div className="form-grid-3">
+                  <div className="form-group">
+                    <label>ID de Medição GA4 (Google Analytics)</label>
+                    <input
+                      type="text"
+                      value={gaIdInput}
+                      onChange={(e) => setGaIdInput(e.target.value)}
+                      placeholder="Ex: G-XXXXXXXXXX"
+                      required
+                    />
+                    <span className="input-hint-sub">Admin ➔ Fluxos de Dados ➔ ID da Métrica</span>
+                  </div>
+
+                  <div className="form-group">
+                    <label>ID da Tag Google Ads (GAds)</label>
+                    <input
+                      type="text"
+                      value={gadsIdInput}
+                      onChange={(e) => setGadsIdInput(e.target.value)}
+                      placeholder="Ex: AW-16890000000"
+                    />
+                    <span className="input-hint-sub">Metas ➔ Conversões ➔ Tag do Google Ads</span>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Rótulo de Conversão (Label da Compra)</label>
+                    <input
+                      type="text"
+                      value={gadsLabelInput}
+                      onChange={(e) => setGadsLabelInput(e.target.value)}
+                      placeholder="Ex: purchase_jampa_vip"
+                    />
+                    <span className="input-hint-sub">Disparado no evento de Compra Aprovada (R$ 39,90)</span>
+                  </div>
+                </div>
+
+                <div className="form-actions-row" style={{ marginTop: '1rem' }}>
+                  <Button
+                    type="submit"
+                    variant="gold"
+                    iconLeft={<Save size={16} />}
+                  >
+                    SALVAR CONFIGURAÇÕES DE GOOGLE ANALYTICS & ADS
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         )}

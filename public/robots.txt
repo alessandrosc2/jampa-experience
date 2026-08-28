@@ -1,6 +1,26 @@
+# Robots.txt — JAMPA EXPERIENCE (https://jampaexperience.online)
 User-agent: *
 Allow: /
 Disallow: /PainelAdmin01
 Disallow: /paineladmin01
+Disallow: /admin*
+Disallow: /api/private*
 
+# Googlebot specific rules
+User-agent: Googlebot
+Allow: /
+Allow: /#*
+Allow: /icons/*
+Allow: /assets/*
+Disallow: /PainelAdmin01
+Disallow: /paineladmin01
+
+# Bingbot
+User-agent: Bingbot
+Allow: /
+Disallow: /PainelAdmin01
+Disallow: /paineladmin01
+
+# Sitemap & Host
 Sitemap: https://jampaexperience.online/sitemap.xml
+Host: https://jampaexperience.online

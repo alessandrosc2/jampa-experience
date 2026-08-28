@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { analyticsService } from '../../services/analyticsService';
 
 interface WhatsAppFloatingButtonProps {
   phoneNumber?: string;
@@ -26,6 +27,10 @@ export const WhatsAppFloatingButton: React.FC<WhatsAppFloatingButtonProps> = ({
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(defaultMessage)}`;
 
+  const handleLinkClick = () => {
+    analyticsService.trackWhatsAppClick('floating_button');
+  };
+
   return (
     <div className="whatsapp-floating-container">
       {/* Balãozinho de Mensagem (Tooltip / Chat Bubble) */}
@@ -48,6 +53,7 @@ export const WhatsAppFloatingButton: React.FC<WhatsAppFloatingButtonProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             className="balloon-content"
+            onClick={handleLinkClick}
           >
             <div className="balloon-avatar-dot" />
             <div className="balloon-text-col">
@@ -67,6 +73,7 @@ export const WhatsAppFloatingButton: React.FC<WhatsAppFloatingButtonProps> = ({
         className="whatsapp-btn"
         aria-label="Falar no WhatsApp (83) 99359-5124"
         title="Atendimento no WhatsApp: (83) 99359-5124"
+        onClick={handleLinkClick}
         onMouseEnter={() => !tooltipDismissed && setShowTooltip(true)}
       >
         {/* Anel de Pulso / Glow */}

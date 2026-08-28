@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { CategoryId, CategoryInfo } from '../../types/place';
 import { CATEGORIES as DEFAULT_CATEGORIES } from '../../data/categories';
+import { analyticsService } from '../../services/analyticsService';
 
 interface CategoryNavProps {
   categories?: CategoryInfo[];
@@ -118,7 +119,10 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
         <div className="category-scroll-container">
           <button
             className={`category-pill ${selectedCategory === 'all' ? 'active' : ''}`}
-            onClick={() => onSelectCategory('all')}
+            onClick={() => {
+              analyticsService.trackSelectCategory('all', 'Todas as Experiências');
+              onSelectCategory('all');
+            }}
           >
             <div className="cat-icon-box">
               <LayoutGrid size={18} />
@@ -131,7 +135,10 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
             <button
               type="button"
               className="category-pill tide-pill"
-              onClick={onOpenTides}
+              onClick={() => {
+                analyticsService.trackTideView();
+                onOpenTides();
+              }}
               style={{ '--cat-accent': '#00B4D8' } as React.CSSProperties}
             >
               <div className="cat-icon-box">
@@ -147,7 +154,10 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
               <button
                 key={cat.id}
                 className={`category-pill ${isSelected ? 'active' : ''}`}
-                onClick={() => onSelectCategory(cat.id)}
+                onClick={() => {
+                  analyticsService.trackSelectCategory(cat.id, cat.label);
+                  onSelectCategory(cat.id);
+                }}
                 style={{
                   '--cat-accent': cat.accentColor
                 } as React.CSSProperties}

@@ -37,6 +37,7 @@ import { Button } from '../common/Button';
 import { LightboxModal } from '../places/LightboxModal';
 import { ReviewSection } from '../places/ReviewSection';
 import { adminService } from '../../services/adminService';
+import { analyticsService } from '../../services/analyticsService';
 
 interface PlacePreviewModalProps {
   place: Place | null;
@@ -67,6 +68,12 @@ export const PlacePreviewModal: React.FC<PlacePreviewModalProps> = ({
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [copiedCoupon, setCopiedCoupon] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && place) {
+      analyticsService.trackViewItem(place.id, place.name, place.categoryId);
+    }
+  }, [isOpen, place]);
 
   // Busca parceiros comerciais vinculados a este local (1 local -> N parceiros)
   const linkedPartners = useMemo(() => {
